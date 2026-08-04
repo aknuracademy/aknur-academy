@@ -1,0 +1,87 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+
+type ProgressBarProps = {
+  completed: number;
+  total: number;
+  studentName: string;
+  courseName: string;
+};
+
+export default function ProgressBar({
+  completed,
+  total,
+  studentName,
+  courseName,
+}: ProgressBarProps) {
+  const router = useRouter();
+
+  const percent =
+    total === 0
+      ? 0
+      : Math.min(
+          100,
+          Math.round((completed / total) * 100)
+        );
+
+  function openCertificate() {
+    const certificateNumber =
+      `AKNUR-${new Date().getFullYear()}-${Date.now()}`;
+
+    const completionDate =
+      new Date().toLocaleDateString("kk-KZ");
+
+    const query = new URLSearchParams({
+      student: studentName,
+      course: courseName,
+      number: certificateNumber,
+      date: completionDate,
+    });
+
+    router.push(
+      `/certificate?${query.toString()}`
+    );
+  }
+
+  return (
+    <div className="rounded-xl bg-white p-5 shadow">
+      <div className="mb-3 flex items-center justify-between">
+        <span className="font-semibold">
+          Курс прогресі
+        </span>
+
+        <span className="font-bold text-green-600">
+          {percent}%
+        </span>
+      </div>
+
+      <div className="h-3 overflow-hidden rounded-full bg-gray-200">
+        <div
+          className="h-full rounded-full bg-green-600 transition-all"
+          style={{ width: `${percent}%` }}
+        />
+      </div>
+
+      {percent === 100 ? (
+        <div className="mt-4 space-y-4">
+          <p className="font-semibold text-green-700">
+            🎉 Құттықтаймыз! Курс толық аяқталды.
+          </p>
+
+          <button
+            type="button"
+            onClick={openCertificate}
+            className="w-full rounded-lg bg-green-600 px-4 py-3 font-semibold text-white transition hover:bg-green-700"
+          >
+            🎓 Сертификатты алу
+          </button>
+        </div>
+      ) : (
+        <p className="mt-3 text-sm text-gray-500">
+          {completed} / {total} сабақ аяқталды
+        </p>
+      )}
+    </div>
+  );
+}
