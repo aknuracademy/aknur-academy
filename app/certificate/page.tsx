@@ -5,8 +5,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import BackButton from "@/components/student/BackButton";
+import { Suspense } from "react";
 
-export default function CertificatePage() {
+function CertificatePageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const certificateRef = useRef<HTMLDivElement | null>(null);
@@ -342,5 +343,18 @@ export default function CertificatePage() {
         </section>
       </div>
     </main>
+  );
+}
+export default function CertificatePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          Сертификат жүктеліп жатыр...
+        </div>
+      }
+    >
+      <CertificatePageContent />
+    </Suspense>
   );
 }
