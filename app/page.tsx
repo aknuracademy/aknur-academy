@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Home() {
   return (
     <main className="min-h-screen bg-gray-100 flex flex-col items-center justify-center">
@@ -9,9 +11,12 @@ export default function Home() {
         Қазақстандағы бухгалтерлерге арналған онлайн платформа
       </p>
 
-      <button className="mt-10 bg-green-700 hover:bg-green-800 text-white px-8 py-4 rounded-xl text-xl">
+      <Link
+        href="/login"
+        className="mt-10 bg-green-700 hover:bg-green-800 text-white px-8 py-4 rounded-xl text-xl transition"
+      >
         Жүйеге кіру
-      </button>
+      </Link>
     </main>
   );
 }
