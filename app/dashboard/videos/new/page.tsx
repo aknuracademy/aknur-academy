@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { getModulesByCourse } from "@/services/module.service";
@@ -11,7 +11,7 @@ type Module = {
   course_id: number;
 };
 
-export default function NewVideoPage() {
+function NewVideoPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -320,5 +320,20 @@ if (videoType === "mp4") {
         </div>
       </div>
     </main>
+  );
+}
+export default function NewVideoPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="flex min-h-screen items-center justify-center bg-gray-100">
+          <p className="text-xl font-medium">
+            Жүктеліп жатыр...
+          </p>
+        </main>
+      }
+    >
+      <NewVideoPageContent />
+    </Suspense>
   );
 }
