@@ -84,20 +84,20 @@ export default function StudentsPage() {
   }
 
   async function loadCourses() {
-    const { data, error } = await supabase
-      .from("courses")
-      .select("id, title")
-      .order("id", {
-        ascending: false,
-      });
+  const { data, error } = await supabase
+    .from("courses")
+    .select("*");
 
-    if (error) {
-      alert(error.message);
-      return;
-    }
+  console.log("COURSES:", data);
+    console.log("ERROR:", error);
 
-    setCourses(data ?? []);
+  if (error) {
+    alert(error.message);
+    return;
   }
+
+  setCourses(data ?? []);
+}
 
   function toggleNewStudentCourse(
     courseId: number
