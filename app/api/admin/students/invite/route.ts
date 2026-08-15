@@ -71,9 +71,10 @@ export async function POST(request: Request) {
       );
     }
 
-    const siteUrl =
-      process.env.NEXT_PUBLIC_SITE_URL ??
-      "http://localhost:3000";
+    const siteUrl = (
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  "https://www.aknuracademy.kz"
+).replace(/\/$/, "");
 
     /*
      * 1. Email Auth-та бұрын бар ма?
