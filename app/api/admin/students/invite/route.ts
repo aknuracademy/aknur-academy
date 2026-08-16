@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { supabaseAdmin } from "@/lib/supabase-admin";
+
 function generateTemporaryPassword() {
   const randomPart = crypto
     .randomUUID()
@@ -8,6 +9,70 @@ function generateTemporaryPassword() {
     .slice(0, 10);
 
   return `AkNUR!${randomPart}`;
+}
+
+async function sendStudentWelcomeEmail({
+  fullName,
+  email,
+  temporaryPassword,
+  loginUrl,
+}: {
+  fullName: string;
+  email: string;
+  temporaryPassword: string;
+  loginUrl: string;
+}) {
+  const resendApiKey = process.env.RESEND_API_KEY;
+
+  if (!resendApiKey) {
+    throw new Error("RESEND_API_KEY табылмады.");
+  }
+
+  const response = await fetch(
+    "https://api.resend.com/emails",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${resendApiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: "AKNUR Academy <noreply@send.aknuracademy.kz>",
+        to: [email],
+        subject: "AKNUR Academy — курсқа қолжетімділік",
+        text: `Сәлеметсіз бе, ${fullName}!
+
+Сіз AKNUR Academy платформасына тіркелдіңіз.
+
+Логин:
+${email}
+
+Уақытша пароль:
+${temporaryPassword}
+
+Кіру сілтемесі:
+${loginUrl}
+
+Алғаш кіргеннен кейін құпиясөзді ауыстыруды ұсынамыз.
+
+Құрметпен,
+AKNUR Academy`,
+      }),
+    }
+  );
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    console.error("Resend қатесі:", result);
+
+    throw new Error(
+      result?.message ||
+        "Email жіберу мүмкін болмады."
+    );
+  }
+
+  return result;
 }
 
 type InviteStudentBody = {
@@ -72,9 +137,9 @@ export async function POST(request: Request) {
     }
 
     const siteUrl = (
-  process.env.NEXT_PUBLIC_SITE_URL ??
-  "https://www.aknuracademy.kz"
-).replace(/\/$/, "");
+      process.env.NEXT_PUBLIC_SITE_URL ??
+      "https://www.aknuracademy.kz"
+    ).replace(/\/$/, "");
 
     /*
      * 1. Email Auth-та бұрын бар ма?
@@ -101,48 +166,49 @@ export async function POST(request: Request) {
     let invitationSent = false;
 
     /*
-     * 2. Auth-та жоқ болса — шақыру жібереміз
+     * 2. Auth-та жоқ болса —
+     * уақытша парольмен жаңа пайдаланушы жасаймыз
      */
     if (!authUser) {
       temporaryPassword =
-  generateTemporaryPassword();
+        generateTemporaryPassword();
 
-const {
-  data: createUserData,
-  error: createUserError,
-} =
-  await supabaseAdmin.auth.admin.createUser({
-    email,
-    password: temporaryPassword,
-    email_confirm: true,
-    user_metadata: {
-      full_name: fullName,
-      must_change_password: true,
-    },
-  });
+      const {
+        data: createUserData,
+        error: createUserError,
+      } =
+        await supabaseAdmin.auth.admin.createUser({
+          email,
+          password: temporaryPassword,
+          email_confirm: true,
+          user_metadata: {
+            full_name: fullName,
+            must_change_password: true,
+          },
+        });
 
-if (createUserError) {
-  return NextResponse.json(
-    {
-      error: createUserError.message,
-    },
-    { status: 400 }
-  );
-}
+      if (createUserError) {
+        return NextResponse.json(
+          {
+            error: createUserError.message,
+          },
+          { status: 400 }
+        );
+      }
 
-if (!createUserData.user) {
-  return NextResponse.json(
-    {
-      error:
-        "Auth пайдаланушысы құрылмады.",
-    },
-    { status: 500 }
-  );
-}
+      if (!createUserData.user) {
+        return NextResponse.json(
+          {
+            error:
+              "Auth пайдаланушысы құрылмады.",
+          },
+          { status: 500 }
+        );
+      }
 
-authUser = createUserData.user;
-newlyInvitedAuthUserId = authUser.id;
-invitationSent = true;
+      authUser = createUserData.user;
+      newlyInvitedAuthUserId = authUser.id;
+      invitationSent = true;
     }
 
     /*
@@ -170,7 +236,8 @@ invitationSent = true;
 
     if (existingStudent) {
       /*
-       * Бұрынғы студенттің аты мен Auth байланысын жаңарту
+       * Бұрынғы студенттің аты мен
+       * Auth байланысын жаңартамыз
        */
       const { error: updateStudentError } =
         await supabaseAdmin
@@ -188,7 +255,7 @@ invitationSent = true;
       studentId = existingStudent.id;
     } else {
       /*
-       * Жаңа students жазбасын жасау
+       * Жаңа students жазбасын жасаймыз
        */
       const {
         data: newStudent,
@@ -212,7 +279,7 @@ invitationSent = true;
     }
 
     /*
-     * 4. Бұрын бекітілген курстарды алу
+     * 4. Бұрын бекітілген курстарды аламыз
      */
     const {
       data: existingStudentCourses,
@@ -232,7 +299,7 @@ invitationSent = true;
       ) ?? [];
 
     /*
-     * 5. Тек жаңа курстарды қосу
+     * 5. Тек жаңа курстарды қосамыз
      */
     const courseIdsToAdd = courseIds.filter(
       (courseId) =>
@@ -256,19 +323,38 @@ invitationSent = true;
       }
     }
 
+    /*
+     * 6. Жаңа студент болса —
+     * Resend арқылы логин мен парольді жібереміз
+     */
+    if (
+      invitationSent &&
+      temporaryPassword
+    ) {
+      await sendStudentWelcomeEmail({
+        fullName,
+        email,
+        temporaryPassword,
+        loginUrl: `${siteUrl}/login`,
+      });
+    }
+
+    /*
+     * 7. Нәтижені админ бетіне қайтарамыз
+     */
     return NextResponse.json(
       {
-  message: invitationSent
-    ? "Студент уақытша парольмен қосылды."
-    : "Бұл email бұрын тіркелген. Студенттің мәліметтері мен курстары жаңартылды.",
-  studentId,
-  invitationSent,
-  addedCourseCount:
-    courseIdsToAdd.length,
-  loginEmail: email,
-  temporaryPassword,
-  loginUrl: `${siteUrl}/login`,
-},
+        message: invitationSent
+          ? "Студент уақытша парольмен қосылды және email жіберілді."
+          : "Бұл email бұрын тіркелген. Студенттің мәліметтері мен курстары жаңартылды.",
+        studentId,
+        invitationSent,
+        addedCourseCount:
+          courseIdsToAdd.length,
+        loginEmail: email,
+        temporaryPassword,
+        loginUrl: `${siteUrl}/login`,
+      },
       {
         status: invitationSent ? 201 : 200,
       }
@@ -280,8 +366,8 @@ invitationSent = true;
     );
 
     /*
-     * Тек осы сұраныста жаңа жасалған жазбаларды тазалаймыз.
-     * Бұрыннан бар пайдаланушыны өшірмейміз.
+     * Тек осы сұраныста жаңадан жасалған
+     * жазбаларды тазалаймыз.
      */
     if (newlyCreatedStudentId) {
       await supabaseAdmin
