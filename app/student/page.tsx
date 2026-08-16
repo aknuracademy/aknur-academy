@@ -35,6 +35,7 @@ export default function StudentPage() {
   const [totalLessons, setTotalLessons] = useState(0);
   const [completedLessons, setCompletedLessons] = useState(0);
   const [overallProgress, setOverallProgress] = useState(0);
+  const [certificateCount, setCertificateCount] = useState(0);
 
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -143,6 +144,11 @@ export default function StudentPage() {
         setTotalLessons(lessonsCount);
         setCompletedLessons(completedCount);
         setOverallProgress(progressPercent);
+        const completedCoursesCount = calculatedCourseProgress.filter(
+  (item) => item.progressPercent === 100
+).length;
+
+setCertificateCount(completedCoursesCount);
       } catch (error) {
         console.error(
           "Студент мәліметтерін алу қатесі:",
@@ -253,7 +259,7 @@ export default function StudentPage() {
               </p>
 
               <p className="mt-2 text-3xl font-bold">
-                0
+                {certificateCount}
               </p>
             </div>
 
