@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import BackButton from "@/components/student/BackButton";
@@ -11,6 +12,45 @@ function CertificatePageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const certificateRef = useRef<HTMLDivElement | null>(null);
+  const [founderName, setFounderName] = useState(
+     "Акнур Санабекқызы"
+  
+);
+const [platformName, setPlatformName] = useState(
+  "AKNUR Academy"
+);
+const [platformDescription, setPlatformDescription] = useState(
+  "Онлайн білім беру платформасы"
+);
+useEffect(() => {
+  async function loadFounderName() {
+    const { data, error } = await supabase
+      .from("platform_settings")
+      .select("founder_name, platform_name, platform_description")
+      .eq("id", 1)
+      .single();
+
+    if (error) {
+      console.error(
+        "Founder атын жүктеу қатесі:",
+        error
+      );
+      return;
+    }
+
+    if (data?.founder_name) {
+      setFounderName(data.founder_name);
+    }
+    if (data?.platform_name) {
+  setPlatformName(data.platform_name);
+}
+if (data?.platform_description) {
+  setPlatformDescription(data.platform_description);
+}
+  }
+
+  loadFounderName();
+}, []);
 
   const studentName =
     searchParams.get("student") ||
@@ -240,12 +280,12 @@ function CertificatePageContent() {
               </p>
 
               <h1 className="mt-3 text-4xl font-extrabold tracking-wide text-green-700 md:text-6xl">
-                AKNUR ACADEMY
-              </h1>
+  {platformName.toLocaleUpperCase("kk-KZ")}
+</h1>
 
               <p className="mt-2 text-sm text-gray-500 md:text-base">
-                Онлайн білім беру платформасы
-              </p>
+  {platformDescription}
+</p>
             </header>
 
             <div className="mt-8 text-center md:mt-10">
@@ -321,8 +361,8 @@ function CertificatePageContent() {
 
               <div className="text-right text-sm text-gray-700 md:text-base">
                 <p className="font-bold text-gray-900">
-                  Акнур Санабекқызы
-                </p>
+  {founderName}
+</p>
 
                 <div className="ml-auto mt-3 h-px w-48 bg-gray-400" />
 
