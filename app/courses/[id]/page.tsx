@@ -41,6 +41,25 @@ const whatsappMessage = encodeURIComponent(
 const whatsappUrl = whatsappNumber
   ? `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`
   : "/login";
+  const { data: modules } = await supabase
+  .from("modules")
+  .select(`
+    id,
+    title,
+    position
+  `)
+  .eq("course_id", courseId)
+  .order("position", { ascending: true });
+
+const { data: videos } = await supabase
+  .from("videos")
+  .select(`
+    id,
+    module_id,
+    title
+  `)
+  .eq("course_id", courseId)
+  .order("id", { ascending: true });
 
   if (error || !course) {
     return (
@@ -111,6 +130,52 @@ const whatsappUrl = whatsappNumber
               </Link>
             </div>
           </div>
+          <div className="mt-10">
+  <h2 className="text-3xl font-extrabold text-gray-900">
+    Курс бағдарламасы
+  </h2>
+
+  <p className="mt-3 text-gray-600">
+    Курстағы модульдер мен сабақтар тізімі
+  </p>
+
+  <div className="mt-6 space-y-4">
+    {modules?.map((module, moduleIndex) => {
+      const moduleVideos =
+        videos?.filter(
+          (video) => video.module_id === module.id
+        ) ?? [];
+
+      return (
+        <div
+          key={module.id}
+          className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
+        >
+          <h3 className="text-xl font-bold text-gray-900">
+            {moduleIndex + 1}-модуль. {module.title}
+          </h3>
+
+          <div className="mt-4 space-y-3">
+            {moduleVideos.map((video, videoIndex) => (
+              <div
+                key={video.id}
+                className="flex items-center gap-3 rounded-xl bg-gray-50 px-4 py-3"
+              >
+                <span className="font-bold text-green-700">
+                  {videoIndex + 1}
+                </span>
+
+                <span className="text-gray-700">
+                  {video.title}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    })}
+  </div>
+</div>
         </div>
       </section>
     </main>
