@@ -17,6 +17,7 @@ type Course = {
   target_audience: string | null;
   learning_outcomes: string | null;
   course_includes: string | null;
+  access_info: string | null;
 };
 
 type Video = {
@@ -43,6 +44,7 @@ export default function CourseLessonsPage() {
   const [targetAudience, setTargetAudience] = useState("");
   const [learningOutcomes, setLearningOutcomes] = useState("");
   const [courseIncludes, setCourseIncludes] = useState("");
+  const [accessInfo, setAccessInfo] = useState("");
 
   const [fullDescription, setFullDescription] = useState("");
 
@@ -72,7 +74,7 @@ export default function CourseLessonsPage() {
       } = await supabase
         .from("courses")
         .select(
-  "id, title, description, price, full_description, target_audience, learning_outcomes, course_includes"
+  "id, title, description, price, full_description, target_audience, learning_outcomes, course_includes, access_info"
 )
         .eq("id", courseId)
         .single();
@@ -147,6 +149,10 @@ setTargetAudience(
 setLearningOutcomes(courseData.learning_outcomes ?? "");
 setCourseIncludes(
   (courseData as Course).course_includes ?? ""
+);
+
+setAccessInfo(
+  (courseData as Course).access_info ?? ""
 );
       setVideos((videoData ?? []) as Video[]);
       setModules((moduleData ?? []) as Module[]);
@@ -311,6 +317,42 @@ async function saveCourseIncludes() {
   }
 }
 
+async function saveAccessInfo() {
+  try {
+    const { error } = await supabase
+      .from("courses")
+      .update({
+        access_info: accessInfo.trim() || null,
+      })
+      .eq("id", courseId);
+
+    if (error) {
+      throw error;
+    }
+
+    setCourse((current) =>
+      current
+        ? {
+            ...current,
+            access_info: accessInfo.trim() || null,
+          }
+        : current
+    );
+
+    alert("Қолжетімділік мерзімі сәтті сақталды.");
+  } catch (error) {
+    console.error(
+      "Қолжетімділік мерзімін сақтау қатесі:",
+      error
+    );
+
+    if (error instanceof Error) {
+      alert(error.message);
+    } else {
+      alert("Сақтау кезінде қате шықты.");
+    }
+  }
+}
   if (loading) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-gray-100">
@@ -459,6 +501,29 @@ async function saveCourseIncludes() {
     className="mt-4 rounded-xl bg-green-600 px-6 py-3 font-bold text-white transition hover:bg-green-700"
   >
     💾 Курсқа не кіреді бөлімін сақтау
+  </button>
+</div>
+<div className="mt-6">
+  <label className="mb-2 block font-medium text-gray-700">
+    Қолжетімділік мерзімі
+  </label>
+
+  <textarea
+    value={accessInfo}
+    onChange={(event) =>
+      setAccessInfo(event.target.value)
+    }
+    rows={4}
+    placeholder="Мысалы: Видео сабақтарға 1 жыл қолжетімділік, 1 ай кері байланыс..."
+    className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600"
+  />
+
+  <button
+    type="button"
+    onClick={saveAccessInfo}
+    className="mt-4 rounded-xl bg-green-600 px-6 py-3 font-bold text-white transition hover:bg-green-700"
+  >
+    💾 Қолжетімділік мерзімін сақтау
   </button>
 </div>
           </div>
