@@ -12,8 +12,9 @@ type Course = {
   id: number;
   title: string;
   description: string | null;
-  full_description: string | null;
   price: number | null;
+  full_description: string | null;
+  target_audience: string | null;
 };
 
 type Video = {
@@ -36,6 +37,9 @@ export default function CourseLessonsPage() {
   const [course, setCourse] = useState<Course | null>(null);
   const [videos, setVideos] = useState<Video[]>([]);
   const [modules, setModules] = useState<Module[]>([]);
+
+  const [targetAudience, setTargetAudience] = useState("");
+
   const [fullDescription, setFullDescription] = useState("");
 
   const [openedModule, setOpenedModule] =
@@ -63,7 +67,9 @@ export default function CourseLessonsPage() {
         error: courseError,
       } = await supabase
         .from("courses")
-        .select("id, title, description, full_description, price")
+        .select(
+  "id, title, description, price, full_description, target_audience"
+)
         .eq("id", courseId)
         .single();
 
@@ -131,6 +137,9 @@ export default function CourseLessonsPage() {
       setFullDescription(
   (courseData as Course).full_description ?? ""
 );
+setTargetAudience(
+  (courseData as Course).target_audience ?? ""
+);
       setVideos((videoData ?? []) as Video[]);
       setModules((moduleData ?? []) as Module[]);
       setStudentCount(studentsCount ?? 0);
@@ -188,6 +197,46 @@ export default function CourseLessonsPage() {
     } else {
       alert(
         "Толық сипаттаманы сақтау кезінде қате шықты."
+      );
+    }
+  }
+}
+async function saveTargetAudience() {
+  try {
+    const { error } = await supabase
+      .from("courses")
+      .update({
+        target_audience:
+          targetAudience.trim() || null,
+      })
+      .eq("id", courseId);
+
+    if (error) {
+      throw error;
+    }
+
+    setCourse((current) =>
+      current
+        ? {
+            ...current,
+            target_audience:
+              targetAudience.trim() || null,
+          }
+        : current
+    );
+
+    alert("Кімге арналған бөлімі сәтті сақталды.");
+  } catch (error) {
+    console.error(
+      "Кімге арналған бөлімін сақтау қатесі:",
+      error
+    );
+
+    if (error instanceof Error) {
+      alert(error.message);
+    } else {
+      alert(
+        "Кімге арналған бөлімін сақтау кезінде қате шықты."
       );
     }
   }
@@ -272,6 +321,29 @@ export default function CourseLessonsPage() {
     className="mt-4 rounded-xl bg-green-600 px-6 py-3 font-bold text-white transition hover:bg-green-700"
   >
     💾 Толық сипаттаманы сақтау
+  </button>
+</div>
+<div className="mt-6">
+  <label className="mb-2 block font-medium text-gray-700">
+    Кімге арналған?
+  </label>
+
+  <textarea
+    value={targetAudience}
+    onChange={(event) =>
+      setTargetAudience(event.target.value)
+    }
+    rows={6}
+    placeholder="Мысалы: Жаңадан ИП ашқан кәсіпкерлерге..."
+    className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600"
+  />
+
+  <button
+    type="button"
+    onClick={saveTargetAudience}
+    className="mt-4 rounded-xl bg-green-600 px-6 py-3 font-bold text-white transition hover:bg-green-700"
+  >
+    💾 Кімге арналған бөлімін сақтау
   </button>
 </div>
           </div>
