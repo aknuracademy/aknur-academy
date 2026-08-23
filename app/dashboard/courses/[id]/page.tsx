@@ -12,6 +12,7 @@ type Course = {
   id: number;
   title: string;
   description: string | null;
+  full_description: string | null;
   price: number | null;
 };
 
@@ -35,6 +36,7 @@ export default function CourseLessonsPage() {
   const [course, setCourse] = useState<Course | null>(null);
   const [videos, setVideos] = useState<Video[]>([]);
   const [modules, setModules] = useState<Module[]>([]);
+  const [fullDescription, setFullDescription] = useState("");
 
   const [openedModule, setOpenedModule] =
     useState<number | null>(null);
@@ -61,7 +63,7 @@ export default function CourseLessonsPage() {
         error: courseError,
       } = await supabase
         .from("courses")
-        .select("id, title, description, price")
+        .select("id, title, description, full_description, price")
         .eq("id", courseId)
         .single();
 
@@ -126,6 +128,9 @@ export default function CourseLessonsPage() {
       }
 
       setCourse(courseData as Course);
+      setFullDescription(
+  (courseData as Course).full_description ?? ""
+);
       setVideos((videoData ?? []) as Video[]);
       setModules((moduleData ?? []) as Module[]);
       setStudentCount(studentsCount ?? 0);
@@ -147,6 +152,46 @@ export default function CourseLessonsPage() {
       setLoading(false);
     }
   }
+  async function saveFullDescription() {
+  try {
+    const { error } = await supabase
+      .from("courses")
+      .update({
+        full_description:
+          fullDescription.trim() || null,
+      })
+      .eq("id", courseId);
+
+    if (error) {
+      throw error;
+    }
+
+    setCourse((current) =>
+      current
+        ? {
+            ...current,
+            full_description:
+              fullDescription.trim() || null,
+          }
+        : current
+    );
+
+    alert("Толық сипаттама сәтті сақталды.");
+  } catch (error) {
+    console.error(
+      "Толық сипаттаманы сақтау қатесі:",
+      error
+    );
+
+    if (error instanceof Error) {
+      alert(error.message);
+    } else {
+      alert(
+        "Толық сипаттаманы сақтау кезінде қате шықты."
+      );
+    }
+  }
+}
 
   if (loading) {
     return (
@@ -206,6 +251,29 @@ export default function CourseLessonsPage() {
                   )} ₸`
                 : "Көрсетілмеген"}
             </p>
+            <div className="mt-6">
+  <label className="mb-2 block font-medium text-gray-700">
+    Толық сипаттама
+  </label>
+
+  <textarea
+    value={fullDescription}
+    onChange={(event) =>
+      setFullDescription(event.target.value)
+    }
+    rows={8}
+    placeholder="Курс туралы толық ақпаратты жазыңыз..."
+    className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600"
+  />
+
+  <button
+    type="button"
+    onClick={saveFullDescription}
+    className="mt-4 rounded-xl bg-green-600 px-6 py-3 font-bold text-white transition hover:bg-green-700"
+  >
+    💾 Толық сипаттаманы сақтау
+  </button>
+</div>
           </div>
 
           <div className="mt-8 grid gap-6 md:grid-cols-3">

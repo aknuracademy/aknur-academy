@@ -17,11 +17,12 @@ export default async function CoursePage({
 
   const { data: course, error } = await supabase
     .from("courses")
-    .select(`
+   .select(`
   id,
   title,
   description,
-  price
+  price,
+  full_description
 `)
     .eq("id", courseId)
     .single();
@@ -130,6 +131,17 @@ const { data: videos } = await supabase
               </Link>
             </div>
           </div>
+          {course.full_description && (
+  <div className="mt-10 rounded-2xl bg-white p-8 shadow-sm">
+    <h2 className="text-2xl font-extrabold text-gray-900">
+      Курс туралы толық ақпарат
+    </h2>
+
+    <p className="mt-4 whitespace-pre-line leading-8 text-gray-700">
+      {course.full_description}
+    </p>
+  </div>
+)}
           <div className="mt-10">
   <h2 className="text-3xl font-extrabold text-gray-900">
     Курс бағдарламасы
