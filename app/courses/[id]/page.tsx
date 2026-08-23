@@ -23,7 +23,8 @@ export default async function CoursePage({
   description,
   price,
   full_description,
-  target_audience
+  target_audience,
+  learning_outcomes
 `)
     .eq("id", courseId)
     .single();
@@ -151,6 +152,17 @@ const { data: videos } = await supabase
 
     <p className="mt-4 whitespace-pre-line leading-8 text-gray-700">
       {course.target_audience}
+    </p>
+  </div>
+)}
+{course.learning_outcomes && (
+  <div className="mt-6 rounded-2xl bg-white p-8 shadow-sm">
+    <h2 className="text-2xl font-extrabold text-gray-900">
+      Курстан не үйренесіз?
+    </h2>
+
+    <p className="mt-4 whitespace-pre-line leading-8 text-gray-700">
+      {course.learning_outcomes}
     </p>
   </div>
 )}
