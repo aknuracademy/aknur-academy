@@ -16,6 +16,7 @@ type Course = {
   full_description: string | null;
   target_audience: string | null;
   learning_outcomes: string | null;
+  course_includes: string | null;
 };
 
 type Video = {
@@ -41,6 +42,7 @@ export default function CourseLessonsPage() {
 
   const [targetAudience, setTargetAudience] = useState("");
   const [learningOutcomes, setLearningOutcomes] = useState("");
+  const [courseIncludes, setCourseIncludes] = useState("");
 
   const [fullDescription, setFullDescription] = useState("");
 
@@ -70,7 +72,7 @@ export default function CourseLessonsPage() {
       } = await supabase
         .from("courses")
         .select(
-  "id, title, description, price, full_description, target_audience, learning_outcomes"
+  "id, title, description, price, full_description, target_audience, learning_outcomes, course_includes"
 )
         .eq("id", courseId)
         .single();
@@ -143,6 +145,9 @@ setTargetAudience(
   (courseData as Course).target_audience ?? ""
 );
 setLearningOutcomes(courseData.learning_outcomes ?? "");
+setCourseIncludes(
+  (courseData as Course).course_includes ?? ""
+);
       setVideos((videoData ?? []) as Video[]);
       setModules((moduleData ?? []) as Module[]);
       setStudentCount(studentsCount ?? 0);
@@ -260,6 +265,43 @@ async function saveLearningOutcomes() {
     alert("Курстан не үйренесіз бөлімі сәтті сақталды");
   } catch (error) {
     console.error("Сақтау қатесі:", error);
+
+    if (error instanceof Error) {
+      alert(error.message);
+    } else {
+      alert("Сақтау кезінде қате шықты.");
+    }
+  }
+}
+async function saveCourseIncludes() {
+  try {
+    const { error } = await supabase
+      .from("courses")
+      .update({
+        course_includes: courseIncludes.trim() || null,
+      })
+      .eq("id", courseId);
+
+    if (error) {
+      throw error;
+    }
+
+    setCourse((current) =>
+      current
+        ? {
+            ...current,
+            course_includes:
+              courseIncludes.trim() || null,
+          }
+        : current
+    );
+
+    alert("Курсқа не кіреді бөлімі сәтті сақталды.");
+  } catch (error) {
+    console.error(
+      "Курсқа не кіреді бөлімін сақтау қатесі:",
+      error
+    );
 
     if (error instanceof Error) {
       alert(error.message);
@@ -394,6 +436,29 @@ async function saveLearningOutcomes() {
     className="mt-4 rounded-xl bg-green-600 px-6 py-3 font-bold text-white transition hover:bg-green-700"
   >
     💾 Курстан не үйренесіз бөлімін сақтау
+  </button>
+</div>
+<div className="mt-6">
+  <label className="mb-2 block font-medium text-gray-700">
+    Курсқа не кіреді?
+  </label>
+
+  <textarea
+    value={courseIncludes}
+    onChange={(event) =>
+      setCourseIncludes(event.target.value)
+    }
+    rows={6}
+    placeholder="Мысалы: видео сабақтар, материалдар, чат, сертификат..."
+    className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600"
+  />
+
+  <button
+    type="button"
+    onClick={saveCourseIncludes}
+    className="mt-4 rounded-xl bg-green-600 px-6 py-3 font-bold text-white transition hover:bg-green-700"
+  >
+    💾 Курсқа не кіреді бөлімін сақтау
   </button>
 </div>
           </div>

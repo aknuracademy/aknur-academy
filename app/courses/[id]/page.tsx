@@ -17,14 +17,15 @@ export default async function CoursePage({
 
   const { data: course, error } = await supabase
     .from("courses")
-   .select(`
+  .select(`
   id,
   title,
   description,
   price,
   full_description,
   target_audience,
-  learning_outcomes
+  learning_outcomes,
+  course_includes
 `)
     .eq("id", courseId)
     .single();
@@ -163,6 +164,17 @@ const { data: videos } = await supabase
 
     <p className="mt-4 whitespace-pre-line leading-8 text-gray-700">
       {course.learning_outcomes}
+    </p>
+  </div>
+)}
+{course.course_includes && (
+  <div className="mt-6 rounded-2xl bg-white p-8 shadow-sm">
+    <h2 className="text-2xl font-extrabold text-gray-900">
+      Курсқа не кіреді?
+    </h2>
+
+    <p className="mt-4 whitespace-pre-line leading-8 text-gray-700">
+      {course.course_includes}
     </p>
   </div>
 )}
