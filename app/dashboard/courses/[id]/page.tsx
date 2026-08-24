@@ -175,13 +175,16 @@ setAccessInfo(
       setLoading(false);
     }
   }
-  async function saveFullDescription() {
+  async function saveCourseDetails() {
   try {
     const { error } = await supabase
       .from("courses")
       .update({
-        full_description:
-          fullDescription.trim() || null,
+        full_description: fullDescription.trim() || null,
+        target_audience: targetAudience.trim() || null,
+        learning_outcomes: learningOutcomes.trim() || null,
+        course_includes: courseIncludes.trim() || null,
+        access_info: accessInfo.trim() || null,
       })
       .eq("id", courseId);
 
@@ -195,154 +198,22 @@ setAccessInfo(
             ...current,
             full_description:
               fullDescription.trim() || null,
-          }
-        : current
-    );
-
-    alert("Толық сипаттама сәтті сақталды.");
-  } catch (error) {
-    console.error(
-      "Толық сипаттаманы сақтау қатесі:",
-      error
-    );
-
-    if (error instanceof Error) {
-      alert(error.message);
-    } else {
-      alert(
-        "Толық сипаттаманы сақтау кезінде қате шықты."
-      );
-    }
-  }
-}
-async function saveTargetAudience() {
-  try {
-    const { error } = await supabase
-      .from("courses")
-      .update({
-        target_audience:
-          targetAudience.trim() || null,
-      })
-      .eq("id", courseId);
-
-    if (error) {
-      throw error;
-    }
-
-    setCourse((current) =>
-      current
-        ? {
-            ...current,
             target_audience:
               targetAudience.trim() || null,
-          }
-        : current
-    );
-
-    alert("Кімге арналған бөлімі сәтті сақталды.");
-  } catch (error) {
-    console.error(
-      "Кімге арналған бөлімін сақтау қатесі:",
-      error
-    );
-
-    if (error instanceof Error) {
-      alert(error.message);
-    } else {
-      alert(
-        "Кімге арналған бөлімін сақтау кезінде қате шықты."
-      );
-    }
-  }
-}
-async function saveLearningOutcomes() {
-  try {
-    const { error } = await supabase
-      .from("courses")
-      .update({
-        learning_outcomes: learningOutcomes,
-      })
-      .eq("id", courseId);
-
-    if (error) {
-      throw error;
-    }
-
-    alert("Курстан не үйренесіз бөлімі сәтті сақталды");
-  } catch (error) {
-    console.error("Сақтау қатесі:", error);
-
-    if (error instanceof Error) {
-      alert(error.message);
-    } else {
-      alert("Сақтау кезінде қате шықты.");
-    }
-  }
-}
-async function saveCourseIncludes() {
-  try {
-    const { error } = await supabase
-      .from("courses")
-      .update({
-        course_includes: courseIncludes.trim() || null,
-      })
-      .eq("id", courseId);
-
-    if (error) {
-      throw error;
-    }
-
-    setCourse((current) =>
-      current
-        ? {
-            ...current,
+            learning_outcomes:
+              learningOutcomes.trim() || null,
             course_includes:
               courseIncludes.trim() || null,
+            access_info:
+              accessInfo.trim() || null,
           }
         : current
     );
 
-    alert("Курсқа не кіреді бөлімі сәтті сақталды.");
+    alert("Курс мәліметтері сәтті сақталды.");
   } catch (error) {
     console.error(
-      "Курсқа не кіреді бөлімін сақтау қатесі:",
-      error
-    );
-
-    if (error instanceof Error) {
-      alert(error.message);
-    } else {
-      alert("Сақтау кезінде қате шықты.");
-    }
-  }
-}
-
-async function saveAccessInfo() {
-  try {
-    const { error } = await supabase
-      .from("courses")
-      .update({
-        access_info: accessInfo.trim() || null,
-      })
-      .eq("id", courseId);
-
-    if (error) {
-      throw error;
-    }
-
-    setCourse((current) =>
-      current
-        ? {
-            ...current,
-            access_info: accessInfo.trim() || null,
-          }
-        : current
-    );
-
-    alert("Қолжетімділік мерзімі сәтті сақталды.");
-  } catch (error) {
-    console.error(
-      "Қолжетімділік мерзімін сақтау қатесі:",
+      "Курс мәліметтерін сақтау қатесі:",
       error
     );
 
@@ -426,13 +297,7 @@ async function saveAccessInfo() {
     className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600"
   />
 
-  <button
-    type="button"
-    onClick={saveFullDescription}
-    className="mt-4 rounded-xl bg-green-600 px-6 py-3 font-bold text-white transition hover:bg-green-700"
-  >
-    💾 Толық сипаттаманы сақтау
-  </button>
+  
 </div>
 <div className="mt-6">
   <label className="mb-2 block font-medium text-gray-700">
@@ -449,14 +314,7 @@ async function saveAccessInfo() {
     className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600"
   />
 
-  <button
-    type="button"
-    onClick={saveTargetAudience}
-    className="mt-4 rounded-xl bg-green-600 px-6 py-3 font-bold text-white transition hover:bg-green-700"
-  >
-    💾 Кімге арналған бөлімін сақтау
-  </button>
-</div>
+  </div>
 <div className="mt-6">
   <label className="mb-2 block font-medium text-gray-700">
     Курстан не үйренесіз?
@@ -472,14 +330,7 @@ async function saveAccessInfo() {
     className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600"
   />
 
-  <button
-    type="button"
-    onClick={saveLearningOutcomes}
-    className="mt-4 rounded-xl bg-green-600 px-6 py-3 font-bold text-white transition hover:bg-green-700"
-  >
-    💾 Курстан не үйренесіз бөлімін сақтау
-  </button>
-</div>
+  </div>
 <div className="mt-6">
   <label className="mb-2 block font-medium text-gray-700">
     Курсқа не кіреді?
@@ -495,14 +346,7 @@ async function saveAccessInfo() {
     className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600"
   />
 
-  <button
-    type="button"
-    onClick={saveCourseIncludes}
-    className="mt-4 rounded-xl bg-green-600 px-6 py-3 font-bold text-white transition hover:bg-green-700"
-  >
-    💾 Курсқа не кіреді бөлімін сақтау
-  </button>
-</div>
+  </div>
 <div className="mt-6">
   <label className="mb-2 block font-medium text-gray-700">
     Қолжетімділік мерзімі
@@ -518,14 +362,14 @@ async function saveAccessInfo() {
     className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600"
   />
 
-  <button
-    type="button"
-    onClick={saveAccessInfo}
-    className="mt-4 rounded-xl bg-green-600 px-6 py-3 font-bold text-white transition hover:bg-green-700"
-  >
-    💾 Қолжетімділік мерзімін сақтау
-  </button>
 </div>
+<button
+  type="button"
+  onClick={saveCourseDetails}
+  className="mt-6 w-full rounded-xl bg-green-700 px-6 py-4 text-lg font-bold text-white transition hover:bg-green-800"
+>
+  💾 Өзгерістерді сақтау
+</button>
           </div>
 
           <div className="mt-8 grid gap-6 md:grid-cols-3">
