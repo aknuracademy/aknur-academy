@@ -135,61 +135,172 @@ const { data: videos } = await supabase
               </Link>
             </div>
           </div>
-          {course.full_description && (
-  <div className="mt-10 rounded-2xl bg-white p-8 shadow-sm">
-    <h2 className="text-2xl font-extrabold text-gray-900">
-      Курс туралы толық ақпарат
-    </h2>
+          <div className="mt-10 space-y-4">
+  {/* Курс туралы толық ақпарат */}
+  {course.full_description && (
+    <details className="group overflow-hidden rounded-2xl border border-green-100 bg-white shadow-sm transition hover:shadow-md">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-5 p-6 md:p-7">
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-50 text-2xl">
+            📄
+          </div>
 
-    <p className="mt-4 whitespace-pre-line leading-8 text-gray-700">
-      {course.full_description}
-    </p>
-  </div>
-)}
-{course.target_audience && (
-  <div className="mt-6 rounded-2xl bg-white p-8 shadow-sm">
-    <h2 className="text-2xl font-extrabold text-gray-900">
-      Кімге арналған?
-    </h2>
+          <div>
+            <h2 className="text-lg font-extrabold text-gray-900 md:text-xl">
+              Курс туралы толық ақпарат
+            </h2>
 
-    <p className="mt-4 whitespace-pre-line leading-8 text-gray-700">
-      {course.target_audience}
-    </p>
-  </div>
-)}
-{course.learning_outcomes && (
-  <div className="mt-6 rounded-2xl bg-white p-8 shadow-sm">
-    <h2 className="text-2xl font-extrabold text-gray-900">
-      Курстан не үйренесіз?
-    </h2>
+            <p className="mt-1 text-sm text-gray-500">
+              Курс туралы толық мәлімет
+            </p>
+          </div>
+        </div>
 
-    <p className="mt-4 whitespace-pre-line leading-8 text-gray-700">
-      {course.learning_outcomes}
-    </p>
-  </div>
-)}
-{course.course_includes && (
-  <div className="mt-6 rounded-2xl bg-white p-8 shadow-sm">
-    <h2 className="text-2xl font-extrabold text-gray-900">
-      Курсқа не кіреді?
-    </h2>
+        <span className="text-2xl font-bold text-green-600 transition duration-200 group-open:rotate-45">
+          +
+        </span>
+      </summary>
 
-    <p className="mt-4 whitespace-pre-line leading-8 text-gray-700">
-      {course.course_includes}
-    </p>
-  </div>
-)}
-{course.access_info && (
-  <div className="mt-6 rounded-2xl bg-white p-8 shadow-sm">
-    <h2 className="text-2xl font-extrabold text-gray-900">
-      Қолжетімділік мерзімі
-    </h2>
+      <div className="border-t border-green-50 bg-green-50/30 px-6 py-6 md:px-7">
+        <p className="whitespace-pre-line leading-8 text-gray-700">
+          {course.full_description}
+        </p>
+      </div>
+    </details>
+  )}
 
-    <p className="mt-4 whitespace-pre-line leading-8 text-gray-700">
-      {course.access_info}
-    </p>
-  </div>
-)}
+  {/* Кімге арналған */}
+  {course.target_audience && (
+    <details className="group overflow-hidden rounded-2xl border border-green-100 bg-white shadow-sm transition hover:shadow-md">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-5 p-6 md:p-7">
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-50 text-2xl">
+            👥
+          </div>
+
+          <div>
+            <h2 className="text-lg font-extrabold text-gray-900 md:text-xl">
+              Кімге арналған?
+            </h2>
+
+            <p className="mt-1 text-sm text-gray-500">
+              Бұл курс кімдерге пайдалы
+            </p>
+          </div>
+        </div>
+
+        <span className="text-2xl font-bold text-green-600 transition duration-200 group-open:rotate-45">
+          +
+        </span>
+      </summary>
+
+      <div className="border-t border-green-50 bg-green-50/30 px-6 py-6 md:px-7">
+        <p className="whitespace-pre-line leading-8 text-gray-700">
+          {course.target_audience}
+        </p>
+      </div>
+    </details>
+  )}
+
+  {/* Не үйренеді */}
+  {course.learning_outcomes && (
+    <details className="group overflow-hidden rounded-2xl border border-green-100 bg-white shadow-sm transition hover:shadow-md">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-5 p-6 md:p-7">
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-50 text-2xl">
+            🎓
+          </div>
+
+          <div>
+            <h2 className="text-lg font-extrabold text-gray-900 md:text-xl">
+              Курстан не үйренесіз?
+            </h2>
+
+            <p className="mt-1 text-sm text-gray-500">
+              Курстан алатын біліміңіз бен нәтижеңіз
+            </p>
+          </div>
+        </div>
+
+        <span className="text-2xl font-bold text-green-600 transition duration-200 group-open:rotate-45">
+          +
+        </span>
+      </summary>
+
+      <div className="border-t border-green-50 bg-green-50/30 px-6 py-6 md:px-7">
+        <p className="whitespace-pre-line leading-8 text-gray-700">
+          {course.learning_outcomes}
+        </p>
+      </div>
+    </details>
+  )}
+
+  {/* Курсқа не кіреді */}
+  {course.course_includes && (
+    <details className="group overflow-hidden rounded-2xl border border-green-100 bg-white shadow-sm transition hover:shadow-md">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-5 p-6 md:p-7">
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-50 text-2xl">
+            ✅
+          </div>
+
+          <div>
+            <h2 className="text-lg font-extrabold text-gray-900 md:text-xl">
+              Курсқа не кіреді?
+            </h2>
+
+            <p className="mt-1 text-sm text-gray-500">
+              Сабақтар, материалдар және қосымша мүмкіндіктер
+            </p>
+          </div>
+        </div>
+
+        <span className="text-2xl font-bold text-green-600 transition duration-200 group-open:rotate-45">
+          +
+        </span>
+      </summary>
+
+      <div className="border-t border-green-50 bg-green-50/30 px-6 py-6 md:px-7">
+        <p className="whitespace-pre-line leading-8 text-gray-700">
+          {course.course_includes}
+        </p>
+      </div>
+    </details>
+  )}
+
+  {/* Қолжетімділік */}
+  {course.access_info && (
+    <details className="group overflow-hidden rounded-2xl border border-green-100 bg-white shadow-sm transition hover:shadow-md">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-5 p-6 md:p-7">
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-50 text-2xl">
+            🕐
+          </div>
+
+          <div>
+            <h2 className="text-lg font-extrabold text-gray-900 md:text-xl">
+              Қолжетімділік мерзімі
+            </h2>
+
+            <p className="mt-1 text-sm text-gray-500">
+              Курсқа қолжетімділік және кері байланыс
+            </p>
+          </div>
+        </div>
+
+        <span className="text-2xl font-bold text-green-600 transition duration-200 group-open:rotate-45">
+          +
+        </span>
+      </summary>
+
+      <div className="border-t border-green-50 bg-green-50/30 px-6 py-6 md:px-7">
+        <p className="whitespace-pre-line leading-8 text-gray-700">
+          {course.access_info}
+        </p>
+      </div>
+    </details>
+  )}
+</div>
           <div className="mt-10">
   <h2 className="text-3xl font-extrabold text-gray-900">
     Курс бағдарламасы
