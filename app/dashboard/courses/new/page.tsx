@@ -10,6 +10,12 @@ export default function NewCoursePage() {
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
 
+  const [fullDescription, setFullDescription] = useState("");
+const [targetAudience, setTargetAudience] = useState("");
+const [learningOutcomes, setLearningOutcomes] = useState("");
+const [courseIncludes, setCourseIncludes] = useState("");
+const [accessInfo, setAccessInfo] = useState("");
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
   event.preventDefault();
 
@@ -20,13 +26,19 @@ export default function NewCoursePage() {
 
   const { error } = await supabase
     .from("courses")
+    
     .insert([
-      {
-        title,
-        description,
-        price: Number(price),
-      },
-    ]);
+  {
+    title,
+    description,
+    price: Number(price),
+    full_description: fullDescription,
+    target_audience: targetAudience,
+    learning_outcomes: learningOutcomes,
+    course_includes: courseIncludes,
+    access_info: accessInfo,
+  },
+]);
 
   if (error) {
     alert(error.message);
@@ -87,6 +99,81 @@ router.refresh();
                 className="w-full rounded-lg border border-gray-300 p-3 outline-none focus:border-green-600"
               />
             </div>
+            <div>
+  <label className="mb-2 block font-semibold">
+    Толық сипаттама
+  </label>
+
+  <textarea
+    value={fullDescription}
+    onChange={(event) =>
+      setFullDescription(event.target.value)
+    }
+    placeholder="Курс туралы толық ақпарат жазыңыз"
+    rows={6}
+    className="w-full rounded-lg border border-gray-300 p-3 outline-none focus:border-green-600"
+  />
+</div>
+<div>
+  <label className="mb-2 block font-semibold">
+    Кімге арналған?
+  </label>
+
+  <textarea
+    value={targetAudience}
+    onChange={(event) =>
+      setTargetAudience(event.target.value)
+    }
+    placeholder="Мысалы: жаңадан бастаған кәсіпкерлерге, ИП жүргізуді үйренгісі келетіндерге..."
+    rows={5}
+    className="w-full rounded-lg border border-gray-300 p-3 outline-none focus:border-green-600"
+  />
+</div>
+<div>
+  <label className="mb-2 block font-semibold">
+    Курстан не үйренесіз?
+  </label>
+
+  <textarea
+    value={learningOutcomes}
+    onChange={(event) =>
+      setLearningOutcomes(event.target.value)
+    }
+    placeholder="Мысалы: ИП ашу, салық режимін таңдау, есепті дұрыс тапсыру..."
+    rows={5}
+    className="w-full rounded-lg border border-gray-300 p-3 outline-none focus:border-green-600"
+  />
+</div>
+<div>
+  <label className="mb-2 block font-semibold">
+    Курсқа не кіреді?
+  </label>
+
+  <textarea
+    value={courseIncludes}
+    onChange={(event) =>
+      setCourseIncludes(event.target.value)
+    }
+    placeholder="Мысалы: видео сабақтар, материалдар, кері байланыс, сертификат..."
+    rows={5}
+    className="w-full rounded-lg border border-gray-300 p-3 outline-none focus:border-green-600"
+  />
+</div>
+<div>
+  <label className="mb-2 block font-semibold">
+    Қолжетімділік мерзімі
+  </label>
+
+  <textarea
+    value={accessInfo}
+    onChange={(event) =>
+      setAccessInfo(event.target.value)
+    }
+    placeholder="Мысалы: Видео сабақтарға 1 жыл қолжетімділік, 1 ай кері байланыс..."
+    rows={4}
+    className="w-full rounded-lg border border-gray-300 p-3 outline-none focus:border-green-600"
+  />
+</div>
 
             <div>
               <label className="mb-2 block font-semibold">
