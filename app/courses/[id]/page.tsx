@@ -366,53 +366,71 @@ const { data: videos } = await supabase
 
   <div className="mt-6 space-y-4">
     {modules?.map((module, moduleIndex) => {
-      const moduleVideos =
-        videos?.filter(
-          (video) => video.module_id === module.id
-        ) ?? [];
+  const moduleVideos =
+    videos?.filter(
+      (video) => video.module_id === module.id
+    ) ?? [];
 
-      return (
-        <details
-  key={module.id}
-  className="group rounded-2xl border border-gray-200 bg-white shadow-sm"
->
-  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-6">
-    <div>
-      <h3 className="text-xl font-bold text-gray-900">
-        {moduleIndex + 1}-модуль. {module.title}
-      </h3>
+  const hasLessons = moduleVideos.length > 0;
 
-      <p className="mt-1 text-sm text-gray-500">
-        {moduleVideos.length} сабақ
-      </p>
-    </div>
+  return (
+    <details
+      key={module.id}
+      className="group overflow-hidden rounded-2xl border border-green-100 bg-white shadow-sm transition hover:shadow-md"
+    >
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-5 md:p-6">
+        <div className="flex min-w-0 items-center gap-4">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-green-50 text-lg font-extrabold text-green-700">
+            {moduleIndex + 1}
+          </div>
 
-    <span className="text-2xl font-bold text-green-700 transition group-open:rotate-45">
-      +
-    </span>
-  </summary>
+          <div className="min-w-0">
+            <h3 className="text-lg font-extrabold text-gray-900">
+              {module.title}
+            </h3>
 
-  <div className="border-t border-gray-100 px-6 pb-6 pt-4">
-    <div className="space-y-3">
-      {moduleVideos.map((video, videoIndex) => (
-        <div
-          key={video.id}
-          className="flex items-center gap-3 rounded-xl bg-gray-50 px-4 py-3"
-        >
-          <span className="font-bold text-green-700">
-            {videoIndex + 1}
-          </span>
-
-          <span className="text-gray-700">
-            {video.title}
-          </span>
+            <p className="mt-1 text-sm text-gray-500">
+              {hasLessons
+                ? `${moduleVideos.length} сабақ`
+                : "Сабақтар әлі қосылмаған"}
+            </p>
+          </div>
         </div>
-      ))}
-    </div>
-  </div>
-</details>
-      );
-    })}
+
+        <span className="shrink-0 text-2xl font-bold text-green-600 transition duration-200 group-open:rotate-45">
+          +
+        </span>
+      </summary>
+
+      <div className="border-t border-green-50 bg-green-50/20 px-5 py-5 md:px-6">
+        {hasLessons ? (
+          <div className="space-y-3">
+            {moduleVideos.map((video, videoIndex) => (
+              <div
+                key={video.id}
+                className="flex items-center gap-4 rounded-xl border border-gray-100 bg-white px-4 py-3"
+              >
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-50 text-sm font-bold text-green-700">
+                  {videoIndex + 1}
+                </div>
+
+                <span className="text-gray-700">
+                  {video.title}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-xl border border-dashed border-green-200 bg-white p-5 text-center">
+            <p className="font-semibold text-gray-700">
+              Бұл модульге сабақтар жақында қосылады
+            </p>
+          </div>
+        )}
+      </div>
+    </details>
+  );
+})}
   </div>
 </div>
         </div>
