@@ -126,12 +126,14 @@ const { data: videos } = await supabase
         </div>
 
         <div className="mt-8 flex flex-wrap gap-4">
-          <Link
-            href={whatsappUrl}
-            className="rounded-xl bg-green-700 px-8 py-4 text-lg font-bold text-white shadow-md transition hover:bg-green-800 hover:shadow-lg"
-          >
-            💬 Курсқа жазылу
-          </Link>
+          <a
+  href={whatsappUrl}
+  target="_blank"
+  rel="noopener noreferrer"
+  className="rounded-xl bg-green-700 px-8 py-4 text-lg font-bold text-white shadow-md transition hover:bg-green-800 hover:shadow-lg"
+>
+  💬 Курсқа жазылу
+</a>
 
           <Link
             href="/#courses"
