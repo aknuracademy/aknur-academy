@@ -88,53 +88,107 @@ const { data: videos } = await supabase
   return (
     <main className="min-h-screen bg-gray-100">
       <section className="bg-gradient-to-b from-green-50 to-white px-6 py-20">
-        <div className="mx-auto max-w-5xl">
+        <div className="mx-auto max-w-6xl">
           <Link
             href="/#courses"
             className="text-sm font-semibold text-green-700"
           >
             ← Барлық курстар
           </Link>
+          <div className="mt-8 grid gap-8 lg:grid-cols-[380px_1fr] lg:items-start">
+  <aside className="lg:sticky lg:top-6">
 
-          <div className="mt-8 rounded-3xl bg-white p-8 shadow-lg md:p-12">
-            <p className="font-semibold text-green-700">
-              AKNUR Academy курсы
-            </p>
+        <div className="mt-8 overflow-hidden rounded-3xl border border-green-100 bg-gradient-to-br from-white via-white to-green-50 shadow-xl">
+  <div className="p-8 md:p-12">
+    <div className="space-y-8">
+      <div>
+        <div className="inline-flex items-center gap-2 rounded-full bg-green-50 px-4 py-2 text-sm font-bold text-green-700">
+          🎓 AKNUR Academy курсы
+        </div>
 
-            <h1 className="mt-4 text-4xl font-extrabold text-gray-900 md:text-5xl">
-              {course.title}
-            </h1>
+        <h1 className="mt-5 text-4xl font-extrabold leading-tight text-gray-900 md:text-5xl">
+          {course.title}
+        </h1>
 
-            <p className="mt-6 text-lg leading-8 text-gray-600">
-              {course.description ||
-                "Курс туралы толық ақпарат жақында қосылады."}
-            </p>
-            <div className="mt-8">
-  <p className="text-sm font-semibold uppercase tracking-wide text-gray-500">
-    Курс бағасы
-  </p>
+        <p className="mt-5 max-w-2xl text-lg leading-8 text-gray-600">
+          {course.description ||
+            "Курс туралы толық ақпарат жақында қосылады."}
+        </p>
+        
+        <div className="mt-8 inline-block rounded-2xl bg-green-50 px-6 py-4">
+          <p className="text-sm font-bold uppercase tracking-wide text-green-700">
+            Курс бағасы
+          </p>
 
-  <p className="mt-2 text-3xl font-extrabold text-green-700">
-    {course.price?.toLocaleString("kk-KZ")} ₸
-  </p>
+          <p className="mt-1 text-4xl font-extrabold text-green-700">
+            {course.price?.toLocaleString("kk-KZ")} ₸
+          </p>
+        </div>
+
+        <div className="mt-8 flex flex-wrap gap-4">
+          <Link
+            href={whatsappUrl}
+            className="rounded-xl bg-green-700 px-8 py-4 text-lg font-bold text-white shadow-md transition hover:bg-green-800 hover:shadow-lg"
+          >
+            💬 Курсқа жазылу
+          </Link>
+
+          <Link
+            href="/#courses"
+            className="rounded-xl border border-gray-300 bg-white px-8 py-4 text-lg font-bold text-gray-800 transition hover:border-green-300 hover:bg-green-50"
+          >
+            Басқа курстар
+          </Link>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="rounded-2xl border border-green-100 bg-white p-5 text-center shadow-sm">
+          <div className="text-3xl">🎥</div>
+          <p className="mt-2 font-bold text-gray-900">
+            Видео сабақтар
+          </p>
+          <p className="mt-1 text-sm text-gray-500">
+            Қадам-қадам түсіндіру
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-green-100 bg-white p-5 text-center shadow-sm">
+          <div className="text-3xl">💬</div>
+          <p className="mt-2 font-bold text-gray-900">
+            Кері байланыс
+          </p>
+          <p className="mt-1 text-sm text-gray-500">
+            Практикамен бірге
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-green-100 bg-white p-5 text-center shadow-sm">
+          <div className="text-3xl">📄</div>
+          <p className="mt-2 font-bold text-gray-900">
+            Материалдар
+          </p>
+          <p className="mt-1 text-sm text-gray-500">
+            Қажетті файлдар
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-green-100 bg-white p-5 text-center shadow-sm">
+          <div className="text-3xl">🏆</div>
+          <p className="mt-2 font-bold text-gray-900">
+            Сертификат
+          </p>
+          <p className="mt-1 text-sm text-gray-500">
+            Курс аяқталған соң
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
+</aside>
 
-            <div className="mt-10 flex flex-wrap gap-4">
-              <Link
-                href={whatsappUrl}
-                className="rounded-xl bg-green-700 px-8 py-4 text-lg font-bold text-white hover:bg-green-800"
-              >
-                Курсқа жазылу
-              </Link>
-
-              <Link
-                href="/#courses"
-                className="rounded-xl border border-gray-300 bg-white px-8 py-4 text-lg font-bold text-gray-800 hover:bg-gray-50"
-              >
-                Басқа курстар
-              </Link>
-            </div>
-          </div>
+<div className="min-w-0">
           <div className="mt-10 space-y-4">
   {/* Курс туралы толық ақпарат */}
   {course.full_description && (
@@ -362,6 +416,8 @@ const { data: videos } = await supabase
   </div>
 </div>
         </div>
+        </div>
+</div>
       </section>
     </main>
   );
