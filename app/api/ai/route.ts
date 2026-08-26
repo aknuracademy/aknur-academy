@@ -2,10 +2,93 @@
 
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase-admin";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+
+    const authHeader = request.headers.get("authorization");
+
+const accessToken = authHeader?.startsWith("Bearer ")
+  ? authHeader.slice(7)
+  : null;
+
+if (!accessToken) {
+  return NextResponse.json(
+    {
+      error: "Авторизация қажет.",
+    },
+    {
+      status: 401,
+    }
+  );
+}
+
+const {
+  data: { user },
+  error: userError,
+} = await supabaseAdmin.auth.getUser(accessToken);
+
+if (userError || !user) {
+  return NextResponse.json(
+    {
+      error: "Сессия жарамсыз. Жүйеге қайта кіріңіз.",
+    },
+    {
+      status: 401,
+    }
+  );
+}
+
+const { data: student, error: studentError } =
+  await supabaseAdmin
+    .from("students")
+    .select("id")
+    .eq("auth_user_id", user.id)
+    .single();
+
+if (studentError || !student) {
+  return NextResponse.json(
+    {
+      error: "Студент мәліметі табылмады.",
+    },
+    {
+      status: 404,
+    }
+  );
+}
+
+const { data: studentCourses, error: studentCoursesError } =
+  await supabaseAdmin
+    .from("student_courses")
+    .select("course_id")
+    .eq("student_id", student.id);
+
+if (studentCoursesError) {
+  return NextResponse.json(
+    {
+      error: "Студент курстарын анықтау мүмкін болмады.",
+    },
+    {
+      status: 500,
+    }
+  );
+}
+
+const allowedCourseIds =
+  studentCourses?.map((item) => item.course_id) ?? [];
+
+if (allowedCourseIds.length === 0) {
+  return NextResponse.json(
+    {
+      error: "Сізге әзірге курс қолжетімді емес.",
+    },
+    {
+      status: 403,
+    }
+  );
+}
 
     const message =
       typeof body?.message === "string"
@@ -35,10 +118,12 @@ export async function POST(request: Request) {
         }
       );
     }
-    const { data: aiVideos, error: aiVideosError } = await supabase
-  .from("videos")
-  .select("title, ai_content")
-  .not("ai_content", "is", null);
+    const { data: aiVideos, error: aiVideosError } =
+  await supabaseAdmin
+    .from("videos")
+    .select("course_id, title, ai_content")
+    .in("course_id", allowedCourseIds)
+    .not("ai_content", "is", null);
 
 if (aiVideosError) {
   console.error(

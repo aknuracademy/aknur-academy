@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { supabase } from "@/lib/supabase";
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -34,11 +35,21 @@ export default function StudentAIPage() {
     setLoading(true);
 
     try {
+        const {
+  data: { session },
+} = await supabase.auth.getSession();
+
+if (!session?.access_token) {
+  throw new Error(
+    "Сессия табылмады. Жүйеге қайта кіріңіз."
+  );
+}
       const response = await fetch("/api/ai", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-        },
+  "Content-Type": "application/json",
+  Authorization: `Bearer ${session.access_token}`,
+},
         body: JSON.stringify({
           message: trimmedMessage,
         }),
