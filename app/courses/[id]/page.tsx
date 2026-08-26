@@ -142,6 +142,10 @@ const { data: videos } = await supabase
 >
   💳 Төлем жасау
 </a>
+<p className="w-full text-sm leading-6 text-gray-600">
+  ✅ Төлем жасағаннан кейін түбіртекті WhatsApp арқылы жіберіңіз.
+  Төлем расталған соң курсқа қолжетімділік беріледі.
+</p>
 
           <Link
             href="/#courses"
