@@ -33,7 +33,7 @@ export default async function CoursePage({
 
     const { data: settings } = await supabase
   .from("platform_settings")
-  .select("whatsapp")
+  .select("whatsapp, kaspi_pay_url")
   .eq("id", 1)
   .single();
   const whatsappNumber = settings?.whatsapp
@@ -132,7 +132,15 @@ const { data: videos } = await supabase
   rel="noopener noreferrer"
   className="rounded-xl bg-green-700 px-8 py-4 text-lg font-bold text-white shadow-md transition hover:bg-green-800 hover:shadow-lg"
 >
-  💬 Курсқа жазылу
+  💬 WhatsApp-қа өту
+</a>
+<a
+  href={settings?.kaspi_pay_url || "#"}
+  target="_blank"
+  rel="noopener noreferrer"
+  className="rounded-xl bg-green-600 px-8 py-4 text-lg font-bold text-white shadow-lg transition hover:bg-green-700"
+>
+  💳 Төлем жасау
 </a>
 
           <Link

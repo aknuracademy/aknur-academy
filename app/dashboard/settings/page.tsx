@@ -12,6 +12,7 @@ type PlatformSettings = {
   founder_name: string | null;
   whatsapp: string | null;
   instagram: string | null;
+  kaspi_pay_url: string | null;
 };
 
 export default function SettingsPage() {
@@ -33,7 +34,8 @@ export default function SettingsPage() {
           platform_description,
           founder_name,
           whatsapp,
-          instagram
+          instagram,
+          kaspi_pay_url
         `)
         .eq("id", 1)
         .single();
@@ -75,6 +77,7 @@ export default function SettingsPage() {
         founder_name: settings.founder_name,
         whatsapp: settings.whatsapp,
         instagram: settings.instagram,
+        kaspi_pay_url: settings.kaspi_pay_url,
       })
       .eq("id", settings.id);
 
@@ -295,6 +298,28 @@ if (errorMessage) {
   className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600"
 />
               </div>
+              <div>
+  <label className="mb-2 block text-sm font-medium text-gray-700">
+    Kaspi Pay сілтемесі
+  </label>
+
+  <input
+    type="text"
+    value={settings?.kaspi_pay_url ?? ""}
+    onChange={(event) =>
+      setSettings((current) =>
+        current
+          ? {
+              ...current,
+              kaspi_pay_url: event.target.value,
+            }
+          : current
+      )
+    }
+    placeholder="https://pay.kaspi.kz/pay/..."
+    className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600"
+  />
+</div>
             </div>
 
             <button
