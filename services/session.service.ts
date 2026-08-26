@@ -112,8 +112,12 @@ export async function registerStudentSession(
   studentId: number,
   authUserId: string
 ) {
-  const sessionToken =
-    getOrCreateSessionToken();
+  const sessionToken = crypto.randomUUID();
+
+localStorage.setItem(
+  SESSION_TOKEN_KEY,
+  sessionToken
+);
 
   if (!sessionToken) {
     throw new Error(

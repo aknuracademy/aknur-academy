@@ -11,6 +11,8 @@ type Student = {
   full_name: string;
   email: string;
   created_at: string;
+  auth_user_id: string | null;
+  role: string;
 };
 
 type Course = {
@@ -276,43 +278,63 @@ export default function StudentsPage() {
     }
   }
 
-  async function handleSendPasswordEmail(
-    studentEmail: string
-  ) {
-    try {
-      const redirectTo =
-        `${window.location.origin}/reset-password`;
+ async function handleSetPassword(
+  userId: string | null
+) {
+  if (!userId) {
+    alert("Бұл студенттің Auth аккаунты табылмады.");
+    return;
+  }
+  const password = window.prompt(
+    "Студентке жаңа пароль енгізіңіз:"
+  );
 
-      const { error } =
-        await supabase.auth.resetPasswordForEmail(
-          studentEmail,
-          {
-            redirectTo,
-          }
-        );
+  if (!password) {
+    return;
+  }
 
-      if (error) {
-        throw error;
+  if (password.length < 6) {
+    alert("Пароль кемінде 6 таңбадан тұруы керек.");
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      "/api/admin-set-password",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId,
+          password,
+        }),
       }
+    );
 
-      alert(
-        "Студенттің поштасына пароль орнату сілтемесі жіберілді."
-      );
-    } catch (error) {
-      console.error(
-        "Пароль хатын жіберу қатесі:",
-        error
-      );
+    const result = await response.json();
 
-      if (error instanceof Error) {
-        alert(error.message);
-      } else {
-        alert(
-          "Пароль орнату хатын жіберу кезінде қате шықты."
-        );
-      }
+    if (!response.ok) {
+      throw new Error(
+        result.error || "Парольді өзгерту мүмкін болмады."
+      );
+    }
+
+    alert("Студенттің паролі сәтті орнатылды!");
+  } catch (error) {
+    console.error(
+      "Пароль орнату қатесі:",
+      error
+    );
+
+    if (error instanceof Error) {
+      alert(error.message);
+    } else {
+      alert("Парольді орнату кезінде қате шықты.");
     }
   }
+}
 
   async function openCoursePanel(
     student: Student
@@ -612,16 +634,14 @@ export default function StudentsPage() {
                     </button>
 
                     <button
-                      type="button"
-                      onClick={() =>
-                        handleSendPasswordEmail(
-                          student.email
-                        )
-                      }
-                      className="rounded-lg bg-amber-500 px-4 py-2 font-medium text-white hover:bg-amber-600"
-                    >
-                      🔑 Пароль орнату
-                    </button>
+  type="button"
+  onClick={() =>
+    handleSetPassword(student.auth_user_id)
+  }
+  className="rounded-lg bg-amber-500 px-4 py-2 ..."
+>
+  🔑 Пароль орнату
+</button>
 
                     <button
                       type="button"
