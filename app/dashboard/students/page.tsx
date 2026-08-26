@@ -357,6 +357,7 @@ export default function StudentsPage() {
       return;
     }
 
+    
     const assignedCourseIds =
       data?.map((item) =>
         Number(item.course_id)
