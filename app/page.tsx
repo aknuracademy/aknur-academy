@@ -18,9 +18,9 @@ if (error) {
     <main className="min-h-screen bg-white">
       {/* Жоғарғы мәзір */}
       <header className="border-b bg-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
           <div>
-            <h1 className="text-2xl font-extrabold text-green-700">
+            <h1 className="text-xl font-extrabold text-green-700 sm:text-2xl">
               AKNUR Academy
             </h1>
 
@@ -31,7 +31,7 @@ if (error) {
 
           <Link
             href="/login"
-            className="rounded-xl bg-green-700 px-6 py-3 font-semibold text-white transition hover:bg-green-800"
+            className="shrink-0 rounded-xl bg-green-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-green-800 sm:px-6 sm:text-base"
           >
             Жүйеге кіру
           </Link>
@@ -40,13 +40,13 @@ if (error) {
 
       {/* Негізгі бөлім */}
       <section className="bg-gradient-to-b from-green-50 to-white">
-        <div className="mx-auto flex min-h-[650px] max-w-7xl items-center px-6 py-20">
+        <div className="mx-auto flex max-w-7xl items-center px-4 py-8 sm:px-6 sm:py-12 md:min-h-[650px] md:py-20">
           <div className="max-w-3xl">
             <p className="mb-5 font-semibold text-green-700">
               Бухгалтерлер мен кәсіпкерлерге арналған
             </p>
 
-            <h2 className="text-4xl font-extrabold leading-tight text-gray-900 md:text-6xl">
+            <h2 className="text-3xl font-extrabold leading-tight text-gray-900 sm:text-4xl md:text-6xl">
               Біліміңізді арттырып,
               <span className="text-green-700">
                 {" "}кәсібіңізді сенімді жүргізіңіз

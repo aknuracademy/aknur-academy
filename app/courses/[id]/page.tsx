@@ -87,7 +87,7 @@ const { data: videos } = await supabase
 
   return (
     <main className="min-h-screen bg-gray-100">
-      <section className="bg-gradient-to-b from-green-50 to-white px-6 py-20">
+      <section className="bg-gradient-to-b from-green-50 to-white px-4 py-10 sm:px-6 sm:py-14 md:py-20">
         <div className="mx-auto max-w-6xl">
           <Link
             href="/#courses"
@@ -99,14 +99,14 @@ const { data: videos } = await supabase
   <aside className="lg:sticky lg:top-6">
 
         <div className="mt-8 overflow-hidden rounded-3xl border border-green-100 bg-gradient-to-br from-white via-white to-green-50 shadow-xl">
-  <div className="p-8 md:p-12">
+  <div className="p-5 sm:p-6 md:p-12">
     <div className="space-y-8">
       <div>
         <div className="inline-flex items-center gap-2 rounded-full bg-green-50 px-4 py-2 text-sm font-bold text-green-700">
           🎓 AKNUR Academy курсы
         </div>
 
-        <h1 className="mt-5 text-4xl font-extrabold leading-tight text-gray-900 md:text-5xl">
+        <h1 className="mt-5 text-3xl font-extrabold leading-tight text-gray-900 sm:text-4xl md:text-5xl">
           {course.title}
         </h1>
 
