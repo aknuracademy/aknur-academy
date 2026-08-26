@@ -7,7 +7,7 @@ import BackButton from "@/components/student/BackButton";
 
 export default function StudentCertificatesPage() {
   return (
-    <main className="min-h-screen bg-gray-100 p-6 md:p-10">
+    <main className="min-h-screen bg-gray-100 px-4 pb-6 pt-20 md:p-10 lg:pt-10">
       <div className="mx-auto max-w-6xl">
 
        <BackButton href="/student" />

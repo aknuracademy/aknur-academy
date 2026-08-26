@@ -209,7 +209,7 @@ setCertificateCount(completedCoursesCount);
   }
 
   return (
-    <main className="min-h-screen bg-gray-100 p-5 md:p-10">
+    <main className="min-h-screen bg-gray-100 px-4 pb-6 pt-20 md:p-10 lg:pt-10">
       <div className="mx-auto max-w-6xl">
         <div className="rounded-3xl bg-gradient-to-r from-green-700 to-green-600 p-6 text-white shadow-lg md:p-8">
           <p className="text-lg text-green-100">
