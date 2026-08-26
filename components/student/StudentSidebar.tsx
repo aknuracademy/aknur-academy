@@ -23,6 +23,11 @@ const menuItems = [
     icon: "📄",
   },
   {
+  href: "/student/ai",
+  label: "AKNUR AI",
+  icon: "✨",
+},
+  {
     href: "/student/certificates",
     label: "Сертификаттар",
     icon: "🏆",
