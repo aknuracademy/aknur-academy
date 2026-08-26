@@ -66,12 +66,6 @@ if (error) {
                 📚 Курстарды көру
               </a>
 
-              <Link
-                href="/login"
-                className="rounded-xl border border-gray-300 bg-white px-8 py-4 text-lg font-bold text-gray-800 transition hover:bg-gray-50"
-              >
-                👤 Менің кабинетім
-              </Link>
             </div>
           </div>
         </div>
