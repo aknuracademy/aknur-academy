@@ -54,6 +54,7 @@ export default function CourseLessonsPage() {
   const [studentCount, setStudentCount] = useState(0);
   const [moduleCount, setModuleCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [newModuleTitle, setNewModuleTitle] = useState("");
 
   useEffect(() => {
     if (!courseId || Number.isNaN(courseId)) {
@@ -224,6 +225,55 @@ setAccessInfo(
     }
   }
 }
+
+async function handleAddModule() {
+  const title = newModuleTitle.trim();
+
+  if (!title) {
+    alert("Модуль атауын жазыңыз.");
+    return;
+  }
+
+  try {
+    const nextPosition =
+      modules.length > 0
+        ? modules.length + 1
+        : 1;
+
+    const { data, error } = await supabase
+      .from("modules")
+      .insert({
+        course_id: courseId,
+        title,
+        position: nextPosition,
+      })
+      .select("id, title, course_id")
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    setModules((current) => [
+      ...current,
+      data as Module,
+    ]);
+
+    setModuleCount((current) => current + 1);
+    setNewModuleTitle("");
+
+    alert("Модуль сәтті қосылды.");
+  } catch (error) {
+    console.error("Модуль қосу қатесі:", error);
+
+    if (error instanceof Error) {
+      alert(error.message);
+    } else {
+      alert("Модуль қосу кезінде қате шықты.");
+    }
+  }
+}
+
   if (loading) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-gray-100">
@@ -264,114 +314,120 @@ setAccessInfo(
             ← Курстарға қайту
           </Link>
 
-          <div className="mt-6 rounded-2xl bg-white p-6 shadow">
-            <h2 className="text-2xl font-bold text-green-700">
-              📚 Курс туралы ақпарат
-            </h2>
+          <details className="group mt-6 rounded-2xl bg-white p-6 shadow">
+  <summary className="flex cursor-pointer list-none items-center justify-between">
+    <h2 className="text-2xl font-bold text-green-700">
+      📚 Курс туралы ақпарат
+    </h2>
 
-            <p className="mt-4 text-gray-600">
-              {course.description ||
-                "Курс сипаттамасы жазылмаған."}
-            </p>
+    <span className="text-3xl font-bold text-green-700 transition group-open:rotate-45">
+      +
+    </span>
+  </summary>
 
-            <p className="mt-4 font-medium text-gray-700">
-              Бағасы:{" "}
-              {course.price !== null
-                ? `${course.price.toLocaleString(
-                    "kk-KZ"
-                  )} ₸`
-                : "Көрсетілмеген"}
-            </p>
-            <div className="mt-6">
-  <label className="mb-2 block font-medium text-gray-700">
-    Толық сипаттама
-  </label>
+  <div className="mt-6">
+    <p className="text-gray-600">
+      {course.description ||
+        "Курс сипаттамасы жазылмаған."}
+    </p>
 
-  <textarea
-    value={fullDescription}
-    onChange={(event) =>
-      setFullDescription(event.target.value)
-    }
-    rows={8}
-    placeholder="Курс туралы толық ақпаратты жазыңыз..."
-    className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600"
-  />
+    <p className="mt-4 font-medium text-gray-700">
+      Бағасы:{" "}
+      {course.price !== null
+        ? `${course.price.toLocaleString("kk-KZ")} ₸`
+        : "Көрсетілмеген"}
+    </p>
 
-  
-</div>
-<div className="mt-6">
-  <label className="mb-2 block font-medium text-gray-700">
-    Кімге арналған?
-  </label>
+    <div className="mt-6">
+      <label className="mb-2 block font-medium text-gray-700">
+        Толық сипаттама
+      </label>
 
-  <textarea
-    value={targetAudience}
-    onChange={(event) =>
-      setTargetAudience(event.target.value)
-    }
-    rows={6}
-    placeholder="Мысалы: Жаңадан ИП ашқан кәсіпкерлерге..."
-    className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600"
-  />
+      <textarea
+        value={fullDescription}
+        onChange={(event) =>
+          setFullDescription(event.target.value)
+        }
+        rows={8}
+        placeholder="Курс туралы толық ақпаратты жазыңыз..."
+        className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600"
+      />
+    </div>
 
+    <div className="mt-6">
+      <label className="mb-2 block font-medium text-gray-700">
+        Кімге арналған?
+      </label>
+
+      <textarea
+        value={targetAudience}
+        onChange={(event) =>
+          setTargetAudience(event.target.value)
+        }
+        rows={6}
+        placeholder="Мысалы: Жаңадан ИП ашқан кәсіпкерлерге..."
+        className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600"
+      />
+    </div>
+
+    <div className="mt-6">
+      <label className="mb-2 block font-medium text-gray-700">
+        Курстан не үйренесіз?
+      </label>
+
+      <textarea
+        value={learningOutcomes}
+        onChange={(event) =>
+          setLearningOutcomes(event.target.value)
+        }
+        rows={6}
+        placeholder="Мысалы: ИП ашу, салық режимін таңдау, есеп тапсыру..."
+        className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600"
+      />
+    </div>
+
+    <div className="mt-6">
+      <label className="mb-2 block font-medium text-gray-700">
+        Курсқа не кіреді?
+      </label>
+
+      <textarea
+        value={courseIncludes}
+        onChange={(event) =>
+          setCourseIncludes(event.target.value)
+        }
+        rows={6}
+        placeholder="Мысалы: видео сабақтар, материалдар, чат, сертификат..."
+        className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600"
+      />
+    </div>
+
+    <div className="mt-6">
+      <label className="mb-2 block font-medium text-gray-700">
+        Қолжетімділік мерзімі
+      </label>
+
+      <textarea
+        value={accessInfo}
+        onChange={(event) =>
+          setAccessInfo(event.target.value)
+        }
+        rows={4}
+        placeholder="Мысалы: Видео сабақтарға 1 жыл қолжетімділік, 1 ай кері байланыс..."
+        className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600"
+      />
+    </div>
+
+    <button
+      type="button"
+      onClick={saveCourseDetails}
+      className="mt-6 w-full rounded-xl bg-green-700 px-6 py-4 text-lg font-bold text-white transition hover:bg-green-800"
+    >
+      💾 Өзгерістерді сақтау
+    </button>
   </div>
-<div className="mt-6">
-  <label className="mb-2 block font-medium text-gray-700">
-    Курстан не үйренесіз?
-  </label>
-
-  <textarea
-    value={learningOutcomes}
-    onChange={(event) =>
-      setLearningOutcomes(event.target.value)
-    }
-    rows={6}
-    placeholder="Мысалы: ИП ашу, салық режимін таңдау, есеп тапсыру..."
-    className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600"
-  />
-
-  </div>
-<div className="mt-6">
-  <label className="mb-2 block font-medium text-gray-700">
-    Курсқа не кіреді?
-  </label>
-
-  <textarea
-    value={courseIncludes}
-    onChange={(event) =>
-      setCourseIncludes(event.target.value)
-    }
-    rows={6}
-    placeholder="Мысалы: видео сабақтар, материалдар, чат, сертификат..."
-    className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600"
-  />
-
-  </div>
-<div className="mt-6">
-  <label className="mb-2 block font-medium text-gray-700">
-    Қолжетімділік мерзімі
-  </label>
-
-  <textarea
-    value={accessInfo}
-    onChange={(event) =>
-      setAccessInfo(event.target.value)
-    }
-    rows={4}
-    placeholder="Мысалы: Видео сабақтарға 1 жыл қолжетімділік, 1 ай кері байланыс..."
-    className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600"
-  />
-
-</div>
-<button
-  type="button"
-  onClick={saveCourseDetails}
-  className="mt-6 w-full rounded-xl bg-green-700 px-6 py-4 text-lg font-bold text-white transition hover:bg-green-800"
->
-  💾 Өзгерістерді сақтау
-</button>
-          </div>
-
+</details>
+          
           <div className="mt-8 grid gap-6 md:grid-cols-3">
             <div className="rounded-2xl bg-white p-6 shadow">
               <p className="text-sm text-gray-500">
@@ -403,6 +459,32 @@ setAccessInfo(
               </h3>
             </div>
           </div>
+
+          <div className="mt-6 rounded-2xl bg-white p-6 shadow">
+  <h2 className="text-2xl font-bold">
+    📁 Жаңа модуль қосу
+  </h2>
+
+  <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+    <input
+      type="text"
+      value={newModuleTitle}
+      onChange={(event) =>
+        setNewModuleTitle(event.target.value)
+      }
+      placeholder="Модуль атауы"
+      className="flex-1 rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600"
+    />
+
+    <button
+      type="button"
+      onClick={handleAddModule}
+      className="rounded-xl bg-green-700 px-6 py-3 font-bold text-white transition hover:bg-green-800"
+    >
+      ➕ Модуль қосу
+    </button>
+  </div>
+</div>
 
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="text-2xl font-bold">

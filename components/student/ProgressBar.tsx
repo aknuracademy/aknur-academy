@@ -1,10 +1,12 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 
 type ProgressBarProps = {
   completed: number;
   total: number;
+  studentId: number | null;
+  courseId: number;
   studentName: string;
   courseName: string;
 };
@@ -12,10 +14,11 @@ type ProgressBarProps = {
 export default function ProgressBar({
   completed,
   total,
+  studentId,
+  courseId,
   studentName,
   courseName,
 }: ProgressBarProps) {
-  const router = useRouter();
 
   const percent =
     total === 0
@@ -25,24 +28,89 @@ export default function ProgressBar({
           Math.round((completed / total) * 100)
         );
 
-  function openCertificate() {
-    const certificateNumber =
-      `AKNUR-${new Date().getFullYear()}-${Date.now()}`;
+  async function openCertificate() {
+  if (!studentId) {
+    alert("Студент анықталмады.");
+    return;
+  }
 
-    const completionDate =
-      new Date().toLocaleDateString("kk-KZ");
+  try {
+    const { data: existingCertificate, error: selectError } =
+      await supabase
+        .from("certificates")
+        .select(
+          "certificate_number, completion_date"
+        )
+        .eq("student_id", studentId)
+        .eq("course_id", courseId)
+        .maybeSingle();
+
+    if (selectError) {
+      throw selectError;
+    }
+
+    let certificateNumber =
+      existingCertificate?.certificate_number;
+
+    let completionDate =
+      existingCertificate?.completion_date;
+
+    if (!certificateNumber) {
+      certificateNumber =
+        `AKNUR-${new Date().getFullYear()}-${studentId}-${courseId}`;
+
+      completionDate =
+        new Date().toISOString().split("T")[0];
+
+      const { error: insertError } =
+        await supabase
+          .from("certificates")
+          .insert({
+            student_id: studentId,
+            course_id: courseId,
+            certificate_number:
+              certificateNumber,
+            completion_date:
+              completionDate,
+          });
+
+      if (insertError) {
+        throw insertError;
+      }
+    }
+
+    const formattedDate =
+      completionDate
+        ? new Date(
+            `${completionDate}T00:00:00`
+          ).toLocaleDateString("kk-KZ")
+        : new Date().toLocaleDateString(
+            "kk-KZ"
+          );
 
     const query = new URLSearchParams({
       student: studentName,
       course: courseName,
       number: certificateNumber,
-      date: completionDate,
+      date: formattedDate,
     });
 
-    router.push(
-      `/certificate?${query.toString()}`
+    window.open(
+      `/certificate?${query.toString()}`,
+      "_blank",
+      "noopener,noreferrer"
+    );
+  } catch (error) {
+    console.error(
+      "Сертификат қатесі:",
+      error
+    );
+
+    alert(
+      "Сертификатты ашу кезінде қате шықты."
     );
   }
+}
 
   return (
     <div className="rounded-xl bg-white p-5 shadow">

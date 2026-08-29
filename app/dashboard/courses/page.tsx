@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getCourses } from "@/services/course.service";
+import {
+  getCourses,
+  deleteCourse,
+} from "@/services/course.service";
 import Sidebar from "@/components/Sidebar";
 
 type Course = {
@@ -44,6 +47,36 @@ setCourses(data as Course[]);
       setLoading(false);
     }
   }
+  async function handleDeleteCourse(
+  courseId: number,
+  courseTitle: string
+) {
+  const confirmed = window.confirm(
+    `"${courseTitle}" курсын өшіруге сенімдісіз бе?`
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    await deleteCourse(courseId);
+
+    setCourses((current) =>
+      current.filter((course) => course.id !== courseId)
+    );
+
+    alert("Курс сәтті өшірілді.");
+  } catch (error) {
+    console.error("Курсты өшіру қатесі:", error);
+
+    if (error instanceof Error) {
+      alert(error.message);
+    } else {
+      alert("Курсты өшіру кезінде қате шықты.");
+    }
+  }
+}
 
   if (loading) {
     return (
@@ -101,16 +134,24 @@ setCourses(data as Course[]);
                     {course.price ?? 0} ₸
                   </p>
 
-                  <div className="mt-6 flex flex-col gap-3">
-                    
+                  <div className="mt-6 grid gap-3 sm:grid-cols-2">
+  <Link
+    href={`/dashboard/courses/${course.id}`}
+    className="rounded-lg bg-green-600 px-5 py-3 text-center font-bold text-white hover:bg-green-700"
+  >
+    ⚙️ Курсты басқару
+  </Link>
 
-                    <Link
-                      href={`/dashboard/courses/${course.id}`}
-                      className="rounded-lg bg-green-600 px-5 py-3 text-center font-bold text-white hover:bg-green-700"
-                    >
-                      🎥 Сабақтарды басқару
-                    </Link>
-                  </div>
+  <button
+    type="button"
+    onClick={() =>
+      handleDeleteCourse(course.id, course.title)
+    }
+    className="rounded-lg bg-red-600 px-5 py-3 font-bold text-white hover:bg-red-700"
+  >
+    🗑 Курсты өшіру
+  </button>
+</div>
                 </div>
               ))}
             </div>

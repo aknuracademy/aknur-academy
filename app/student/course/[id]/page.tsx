@@ -70,6 +70,7 @@ export default function StudentCoursePage() {
   const isCompleted = selectedVideo
     ? completedVideoIds.includes(
         selectedVideo.id
+        
       )
     : false;
 
@@ -358,6 +359,78 @@ export default function StudentCoursePage() {
       <CourseHeader
         course={course}
       />
+      {course && (
+  <div className="mx-auto mt-6 max-w-7xl px-5 lg:px-8">
+    <details className="group rounded-2xl bg-white p-6 shadow">
+      <summary className="flex cursor-pointer list-none items-center justify-between">
+        <h2 className="text-xl font-bold text-green-700">
+          📚 Курс туралы ақпарат
+        </h2>
+
+        <span className="text-3xl font-bold text-green-700 transition group-open:rotate-45">
+          +
+        </span>
+      </summary>
+
+      <div className="mt-6 grid gap-6 md:grid-cols-2">
+        {course.full_description && (
+          <div>
+            <h3 className="font-bold text-gray-900">
+              📝 Курс туралы
+            </h3>
+            <p className="mt-2 whitespace-pre-line text-gray-600">
+              {course.full_description}
+            </p>
+          </div>
+        )}
+
+        {course.target_audience && (
+          <div>
+            <h3 className="font-bold text-gray-900">
+              👥 Кімге арналған?
+            </h3>
+            <p className="mt-2 whitespace-pre-line text-gray-600">
+              {course.target_audience}
+            </p>
+          </div>
+        )}
+
+        {course.learning_outcomes && (
+          <div>
+            <h3 className="font-bold text-gray-900">
+              🎯 Курстан не үйренесіз?
+            </h3>
+            <p className="mt-2 whitespace-pre-line text-gray-600">
+              {course.learning_outcomes}
+            </p>
+          </div>
+        )}
+
+        {course.course_includes && (
+          <div>
+            <h3 className="font-bold text-gray-900">
+              📦 Курсқа не кіреді?
+            </h3>
+            <p className="mt-2 whitespace-pre-line text-gray-600">
+              {course.course_includes}
+            </p>
+          </div>
+        )}
+
+        {course.access_info && (
+          <div>
+            <h3 className="font-bold text-gray-900">
+              🔐 Қолжетімділік
+            </h3>
+            <p className="mt-2 whitespace-pre-line text-gray-600">
+              {course.access_info}
+            </p>
+          </div>
+        )}
+      </div>
+    </details>
+  </div>
+)}
 
       {isCourseCompleted && (
         <div className="mx-auto mt-6 max-w-7xl px-5 lg:px-8">
@@ -381,23 +454,22 @@ export default function StudentCoursePage() {
       <div className="mx-auto grid max-w-7xl gap-6 p-5 lg:grid-cols-[350px_1fr] lg:p-8">
         <div className="space-y-6">
           <ProgressBar
-            completed={
-              completedVideoIds.length
-            }
-            total={videos.length}
-            studentName={studentName}
-            courseName={
-              course?.title ?? ""
-            }
-          />
+  completed={completedVideoIds.length}
+  total={videos.length}
+  studentId={studentId}
+  courseId={courseId}
+  studentName={studentName}
+  courseName={course?.title ?? ""}
+/>
 
           <LessonSidebar
-            videos={videos}
-            selectedVideo={selectedVideo}
-            onSelectVideo={
-              setSelectedVideo
-            }
-          />
+  videos={videos}
+  selectedVideo={selectedVideo}
+  onSelectVideo={
+    setSelectedVideo
+  }
+  completedVideoIds={completedVideoIds}
+/>
         </div>
 
         <section className="overflow-hidden rounded-2xl bg-white shadow">

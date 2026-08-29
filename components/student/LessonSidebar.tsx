@@ -19,6 +19,7 @@ type LessonSidebarProps = {
   videos: VideoWithModule[];
   selectedVideo: Video | null;
   onSelectVideo: (video: Video) => void;
+  completedVideoIds?: number[];
 };
 
 type VideoGroup = {
@@ -32,6 +33,7 @@ export default function LessonSidebar({
   videos,
   selectedVideo,
   onSelectVideo,
+  completedVideoIds = [],
 }: LessonSidebarProps) {
   const groupedVideos = useMemo(() => {
     const groups = videos.reduce<VideoGroup[]>((result, video) => {
@@ -165,22 +167,42 @@ export default function LessonSidebar({
                 {isOpen && (
                   <div className="mt-2">
                     {lessonsWithNumbers.map(
-                      ({ video, lessonNumber }) => {
-                        const isSelected =
-                          selectedVideo?.id === video.id;
+  ({ video, lessonNumber }) => {
+    const isSelected =
+      selectedVideo?.id === video.id;
 
-                        return (
+    const isCompleted =
+      completedVideoIds.includes(video.id);
+
+    const globalVideoIndex =
+      videos.findIndex(
+        (item) => item.id === video.id
+      );
+
+    const isLocked =
+      globalVideoIndex > 0 &&
+      !completedVideoIds.includes(
+        videos[globalVideoIndex - 1].id
+      );
+
+    return (
                           <button
-                            key={video.id}
-                            type="button"
-                            onClick={() =>
-                              onSelectVideo(video)
+  key={video.id}
+  type="button"
+  disabled={isLocked}
+  onClick={() => {
+    if (!isLocked) {
+      onSelectVideo(video);
+    }
+  }
                             }
                             className={`mb-2 flex w-full items-center gap-3 rounded-xl p-4 text-left transition ${
-                              isSelected
-                                ? "bg-green-600 text-white"
-                                : "bg-gray-50 hover:bg-green-50"
-                            }`}
+  isLocked
+    ? "cursor-not-allowed bg-gray-100 opacity-50"
+    : isSelected
+      ? "bg-green-600 text-white"
+      : "bg-gray-50 hover:bg-green-50"
+}`}
                           >
                             <div
                               className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-bold ${
@@ -197,9 +219,19 @@ export default function LessonSidebar({
                                 {lessonNumber}-сабақ
                               </p>
 
-                              <p className="mt-1 font-semibold">
-                                {video.title}
-                              </p>
+                              <p className="mt-1 flex items-center justify-between gap-2 font-semibold">
+  <span>{video.title}</span>
+
+  {isCompleted ? (
+    <span className="shrink-0 text-lg">
+      ✓
+    </span>
+  ) : isLocked ? (
+    <span className="shrink-0 text-lg">
+      🔒
+    </span>
+  ) : null}
+</p>
 
                               {video.duration && (
                                 <p className="mt-1 text-xs opacity-75">
