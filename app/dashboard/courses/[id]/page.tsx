@@ -25,6 +25,7 @@ type Video = {
   title: string;
   course_id: number;
   module_id: number | null;
+  position: number | null;
 };
 
 type Module = {
@@ -91,7 +92,7 @@ export default function CourseLessonsPage() {
         .from("videos")
         .select("id, title, course_id, module_id")
         .eq("course_id", courseId)
-        .order("id", { ascending: true });
+        .order("position", { ascending: true })
 
       if (videoError) {
         throw videoError;
@@ -102,7 +103,7 @@ export default function CourseLessonsPage() {
         error: moduleError,
       } = await supabase
         .from("modules")
-        .select("id, title, course_id")
+        .select("id, title, course_id, position")
         .eq("course_id", courseId)
         .order("position", { ascending: true });
 
@@ -302,6 +303,173 @@ async function handleDeleteVideo(videoId: number) {
     console.error("Сабақты өшіру қатесі:", error);
 
     alert("Сабақты өшіру кезінде қате шықты.");
+  }
+}
+
+async function handleMoveVideo(
+  draggedVideoId: number,
+  targetVideoId: number
+) {
+  const draggedVideo = videos.find(
+    (video) => video.id === draggedVideoId
+  );
+
+  const targetVideo = videos.find(
+    (video) => video.id === targetVideoId
+  );
+
+  if (!draggedVideo || !targetVideo) {
+    return;
+  }
+
+  if (draggedVideo.module_id !== targetVideo.module_id) {
+    return;
+  }
+
+  const groupVideos = videos.filter(
+    (video) =>
+      video.module_id === draggedVideo.module_id
+  );
+
+  const draggedIndex = groupVideos.findIndex(
+    (video) => video.id === draggedVideoId
+  );
+
+  const targetIndex = groupVideos.findIndex(
+    (video) => video.id === targetVideoId
+  );
+
+  if (
+    draggedIndex === -1 ||
+    targetIndex === -1
+  ) {
+    return;
+  }
+
+  const reorderedVideos = [...groupVideos];
+
+  const [movedVideo] = reorderedVideos.splice(
+    draggedIndex,
+    1
+  );
+
+  reorderedVideos.splice(
+    targetIndex,
+    0,
+    movedVideo
+  );
+
+  const updatedVideos = reorderedVideos.map(
+    (video, index) => ({
+      ...video,
+      position: index + 1,
+    })
+  );
+
+  setVideos((current) =>
+  current
+    .map((video) => {
+      const updated = updatedVideos.find(
+        (item) => item.id === video.id
+      );
+
+      return updated ?? video;
+    })
+    .sort(
+      (a, b) =>
+        (a.position ?? 9999) -
+        (b.position ?? 9999)
+    )
+);
+
+  try {
+    await Promise.all(
+      updatedVideos.map((video) =>
+        supabase
+          .from("videos")
+          .update({
+            position: video.position,
+          })
+          .eq("id", video.id)
+      )
+    );
+  } catch (error) {
+    console.error(
+      "Сабақ ретін сақтау қатесі:",
+      error
+    );
+
+    alert(
+      "Сабақ ретін сақтау кезінде қате шықты."
+    );
+
+    await loadData();
+  }
+}
+async function handleMoveModule(
+  draggedModuleId: number,
+  targetModuleId: number
+) {
+  const draggedIndex = modules.findIndex(
+    (module) => module.id === draggedModuleId
+  );
+
+  const targetIndex = modules.findIndex(
+    (module) => module.id === targetModuleId
+  );
+
+  if (
+    draggedIndex === -1 ||
+    targetIndex === -1 ||
+    draggedIndex === targetIndex
+  ) {
+    return;
+  }
+
+  const reorderedModules = [...modules];
+
+  const [movedModule] = reorderedModules.splice(
+    draggedIndex,
+    1
+  );
+
+  reorderedModules.splice(
+    targetIndex,
+    0,
+    movedModule
+  );
+
+  const updatedModules = reorderedModules.map(
+    (module, index) => ({
+      ...module,
+      position: index + 1,
+    })
+  );
+
+  setModules(updatedModules);
+
+  try {
+    await Promise.all(
+      updatedModules.map((module) =>
+        supabase
+          .from("modules")
+          .update({
+            position: module.position,
+          })
+          .eq("id", module.id)
+      )
+    );
+  } catch (error) {
+    console.error(
+      "Модуль ретін сақтау қатесі:",
+      error
+    );
+
+    alert(
+      "Модуль ретін сақтау кезінде қате шықты."
+    );
+
+    await loadData();
   }
 }
 
@@ -549,9 +717,36 @@ async function handleDeleteVideo(videoId: number) {
 
                 return (
                   <div
-                    key={module.id}
-                    className="rounded-2xl bg-white p-6 shadow"
-                  >
+  key={module.id}
+  draggable
+  onDragStart={(event) => {
+    event.dataTransfer.setData(
+      "moduleId",
+      String(module.id)
+    );
+  }}
+  onDragOver={(event) => {
+    event.preventDefault();
+  }}
+  onDrop={(event) => {
+    event.preventDefault();
+
+    const draggedModuleId = Number(
+      event.dataTransfer.getData("moduleId")
+    );
+
+    if (
+      draggedModuleId &&
+      draggedModuleId !== module.id
+    ) {
+      handleMoveModule(
+        draggedModuleId,
+        module.id
+      );
+    }
+  }}
+  className="cursor-move rounded-2xl bg-white p-6 shadow"
+>
                     <button
                       type="button"
                       onClick={() =>
@@ -583,9 +778,36 @@ async function handleDeleteVideo(videoId: number) {
                             {moduleVideos.map(
                               (video, index) => (
                                 <div
-                                  key={video.id}
-                                  className="rounded-xl border border-gray-200 p-5"
-                                >
+  key={video.id}
+  draggable
+  onDragStart={(event) => {
+    event.dataTransfer.setData(
+      "videoId",
+      String(video.id)
+    );
+  }}
+  onDragOver={(event) => {
+    event.preventDefault();
+  }}
+  onDrop={(event) => {
+    event.preventDefault();
+
+    const draggedVideoId = Number(
+      event.dataTransfer.getData("videoId")
+    );
+
+    if (
+      draggedVideoId &&
+      draggedVideoId !== video.id
+    ) {
+      handleMoveVideo(
+        draggedVideoId,
+        video.id
+      );
+    }
+  }}
+  className="cursor-move rounded-xl border border-gray-200 p-5"
+>
                                   <p className="text-sm text-gray-500">
                                     {index + 1}-сабақ
                                   </p>
@@ -642,9 +864,36 @@ async function handleDeleteVideo(videoId: number) {
                       )
                       .map((video, index) => (
                         <div
-                          key={video.id}
-                          className="rounded-xl border border-gray-200 p-5"
-                        >
+  key={video.id}
+  draggable
+  onDragStart={(event) => {
+    event.dataTransfer.setData(
+      "videoId",
+      String(video.id)
+    );
+  }}
+  onDragOver={(event) => {
+    event.preventDefault();
+  }}
+  onDrop={(event) => {
+    event.preventDefault();
+
+    const draggedVideoId = Number(
+      event.dataTransfer.getData("videoId")
+    );
+
+    if (
+      draggedVideoId &&
+      draggedVideoId !== video.id
+    ) {
+      handleMoveVideo(
+        draggedVideoId,
+        video.id
+      );
+    }
+  }}
+  className="cursor-move rounded-xl border border-gray-200 p-5"
+>
                           <p className="text-sm text-gray-500">
                             {index + 1}-сабақ
                           </p>
