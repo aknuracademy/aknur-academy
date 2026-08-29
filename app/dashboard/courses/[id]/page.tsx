@@ -274,6 +274,37 @@ async function handleAddModule() {
   }
 }
 
+async function handleDeleteVideo(videoId: number) {
+  const confirmed = window.confirm(
+    "Бұл сабақты өшіруге сенімдісіз бе?"
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    const { error } = await supabase
+      .from("videos")
+      .delete()
+      .eq("id", videoId);
+
+    if (error) {
+      throw error;
+    }
+
+    setVideos((current) =>
+      current.filter((video) => video.id !== videoId)
+    );
+
+    alert("Сабақ өшірілді.");
+  } catch (error) {
+    console.error("Сабақты өшіру қатесі:", error);
+
+    alert("Сабақты өшіру кезінде қате шықты.");
+  }
+}
+
   if (loading) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-gray-100">
@@ -577,6 +608,14 @@ async function handleAddModule() {
                                     >
                                       📄 Материал қосу
                                     </Link>
+                                    
+                                    <button
+  type="button"
+  onClick={() => handleDeleteVideo(video.id)}
+  className="inline-block rounded-lg bg-red-600 px-5 py-3 font-medium text-white transition hover:bg-red-700"
+>
+  🗑️ Өшіру
+</button>
                                   </div>
                                 </div>
                               )
@@ -593,11 +632,9 @@ async function handleAddModule() {
                 (video) => video.module_id === null
               ) && (
                 <div className="rounded-2xl bg-white p-6 shadow">
-                  <h3 className="text-2xl font-bold text-orange-600">
-                    📂 Модульсіз сабақтар
-                  </h3>
+                  
 
-                  <div className="mt-5 space-y-4">
+                  <div className="space-y-4">
                     {videos
                       .filter(
                         (video) =>
@@ -630,6 +667,13 @@ async function handleAddModule() {
                             >
                               📄 Материал қосу
                             </Link>
+                            <button
+  type="button"
+  onClick={() => handleDeleteVideo(video.id)}
+  className="inline-block rounded-lg bg-red-600 px-5 py-3 font-medium text-white transition hover:bg-red-700"
+>
+  🗑️ Өшіру
+</button>
                           </div>
                         </div>
                       ))}
