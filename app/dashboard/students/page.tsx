@@ -33,6 +33,7 @@ export default function StudentsPage() {
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [accessMonths, setAccessMonths] = useState("12");
 
   const [
     newStudentCourseIds,
@@ -159,7 +160,8 @@ export default function StudentsPage() {
               .trim()
               .toLowerCase(),
             courseIds:
-              newStudentCourseIds,
+  newStudentCourseIds,
+accessMonths: Number(accessMonths),
           }),
         }
       );
@@ -524,6 +526,25 @@ export default function StudentsPage() {
             placeholder="Мысалы: aidana@gmail.com"
             className="mt-2 w-full rounded-lg border p-3 outline-none focus:border-green-600"
           />
+          <div className="mt-6">
+  <label className="block font-medium">
+    Курсқа доступ мерзімі
+  </label>
+
+  <select
+    value={accessMonths}
+    onChange={(e) =>
+      setAccessMonths(e.target.value)
+    }
+    className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3"
+  >
+    <option value="1">1 ай</option>
+    <option value="3">3 ай</option>
+    <option value="6">6 ай</option>
+    <option value="12">12 ай</option>
+    <option value="0">Шексіз</option>
+  </select>
+</div>
 
           <div className="mt-6">
             <p className="font-medium">

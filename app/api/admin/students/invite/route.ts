@@ -79,6 +79,7 @@ type InviteStudentBody = {
   fullName?: string;
   email?: string;
   courseIds?: number[];
+  accessMonths?: number;
 };
 
 export async function POST(request: Request) {
@@ -95,6 +96,8 @@ export async function POST(request: Request) {
     const email = body.email
       ?.trim()
       .toLowerCase();
+
+      const accessMonths = body.accessMonths ?? 12;
 
     const courseIds = Array.from(
       new Set(
@@ -307,11 +310,23 @@ export async function POST(request: Request) {
     );
 
     if (courseIdsToAdd.length > 0) {
-      const rowsToInsert =
-        courseIdsToAdd.map((courseId) => ({
-          student_id: studentId,
-          course_id: courseId,
-        }));
+      const accessExpiresAt =
+  accessMonths === 0
+    ? null
+    : (() => {
+        const expiresAt = new Date();
+        expiresAt.setMonth(
+          expiresAt.getMonth() + accessMonths
+        );
+        return expiresAt.toISOString();
+      })();
+
+const rowsToInsert =
+  courseIdsToAdd.map((courseId) => ({
+    student_id: studentId,
+    course_id: courseId,
+    access_expires_at: accessExpiresAt,
+  }));
 
       const { error: coursesInsertError } =
         await supabaseAdmin
