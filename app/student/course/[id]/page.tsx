@@ -106,6 +106,17 @@ export default function StudentCoursePage() {
         setStudentName(
           currentStudent.full_name
         );
+        const courseData =
+  await getCourseById(courseId);
+
+if (!courseData) {
+  setErrorMessage(
+    "Курс табылмады."
+  );
+  return;
+}
+
+setCourse(courseData as Course);
         const courseAccess =
   await getStudentCourseAccess(
     currentStudent.id,
@@ -131,18 +142,7 @@ if (
   return;
 }
 
-        const courseData =
-          await getCourseById(courseId);
-
-        if (!courseData) {
-          setErrorMessage(
-            "Курс табылмады."
-          );
-          return;
-        }
-
-        setCourse(courseData as Course);
-
+        
         const videoData =
           await getVideosByCourse(
             courseId
@@ -365,17 +365,36 @@ if (
             {errorMessage}
           </p>
 
-          <button
-            type="button"
-            onClick={() =>
-              router.push(
-                "/student/courses"
-              )
-            }
-            className="mt-6 rounded-lg bg-green-600 px-6 py-3 font-bold text-white hover:bg-green-700"
-          >
-            ← Артқа
-          </button>
+          <div className="mt-6 flex flex-col gap-3">
+  {errorMessage.includes(
+  "қолжетімділік мерзімі аяқталған"
+) && (
+    <a
+      href={`https://wa.me/77766565747?text=${encodeURIComponent(
+        `Сәлеметсіз бе! Мен ${
+          course?.title ?? "курс"
+        } курсының мерзімін ұзартқым келеді.`
+      )}`}
+      target="_blank"
+      rel="noreferrer"
+      className="rounded-lg bg-green-600 px-6 py-3 font-bold text-white hover:bg-green-700"
+    >
+      Курс мерзімін ұзарту
+    </a>
+  )}
+
+  <button
+    type="button"
+    onClick={() =>
+      router.push(
+        "/student/courses"
+      )
+    }
+    className="rounded-lg border border-gray-300 px-6 py-3 font-bold text-gray-700 hover:bg-gray-50"
+  >
+    ← Артқа
+  </button>
+</div>
         </div>
       </main>
     );
