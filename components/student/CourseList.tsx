@@ -14,14 +14,17 @@ export type CourseProgress = {
 type CourseListProps = {
   courses: Course[];
   courseProgress: CourseProgress[];
+  expiredCourseIds: number[];
   showHeader?: boolean;
 };
 
 export default function CourseList({
   courses,
   courseProgress,
+  expiredCourseIds,
   showHeader = true,
 }: CourseListProps) {
+
   const router = useRouter();
 
   return (
@@ -52,6 +55,9 @@ export default function CourseList({
             const progress = courseProgress.find(
               (item) => item.courseId === course.id
             );
+
+            const isExpired =
+  expiredCourseIds.includes(course.id);
 
             const totalLessons =
               progress?.totalLessons ?? 0;
@@ -105,19 +111,38 @@ export default function CourseList({
                   </p>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() =>
-                    router.push(
-                      `/student/course/${course.id}`
-                    )
-                  }
-                  className="mt-6 w-full rounded-lg bg-green-600 px-5 py-3 font-bold text-white transition hover:bg-green-700"
-                >
-                  {progressPercent > 0
-                    ? "▶️ Оқуды жалғастыру"
-                    : "▶️ Курсты бастау"}
-                </button>
+                {isExpired ? (
+  <div className="mt-6 space-y-3">
+    <div className="rounded-lg bg-red-50 px-5 py-3 text-center font-bold text-red-600">
+      Мерзімі аяқталған
+    </div>
+
+    <a
+      href={`https://wa.me/77766565747?text=${encodeURIComponent(
+        `Сәлеметсіз бе! Мен ${course.title} курсының мерзімін ұзартқым келеді.`
+      )}`}
+      target="_blank"
+      rel="noreferrer"
+      className="block w-full rounded-lg bg-green-600 px-5 py-3 text-center font-bold text-white transition hover:bg-green-700"
+    >
+      Ұзарту
+    </a>
+  </div>
+) : (
+  <button
+    type="button"
+    onClick={() =>
+      router.push(
+        `/student/course/${course.id}`
+      )
+    }
+    className="mt-6 w-full rounded-lg bg-green-600 px-5 py-3 font-bold text-white transition hover:bg-green-700"
+  >
+    {progressPercent > 0
+      ? "▶️ Оқуды жалғастыру"
+      : "▶️ Курсты бастау"}
+  </button>
+)}
               </article>
             );
           })}

@@ -25,6 +25,9 @@ export default function StudentCoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [courseProgress, setCourseProgress] = useState<CourseProgress[]>([]);
 
+  const [expiredCourseIds, setExpiredCourseIds] =
+  useState<number[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -41,6 +44,21 @@ export default function StudentCoursesPage() {
         }
 
         const assignedCourses = await getStudentCourses(student.id);
+
+        const expiredIds = assignedCourses
+  .filter((item) => {
+    if (!item.access_expires_at) {
+      return false;
+    }
+
+    return (
+      new Date(item.access_expires_at).getTime() <
+      Date.now()
+    );
+  })
+  .map((item) => item.course_id);
+
+setExpiredCourseIds(expiredIds);
 
         const formattedCourses = assignedCourses
           .flatMap((item) => {
@@ -161,9 +179,10 @@ export default function StudentCoursesPage() {
     <main className="min-h-screen bg-gray-100 px-4 pb-6 pt-20 md:p-10 lg:pt-10">
       <div className="mx-auto max-w-6xl">
         <CourseList
-          courses={courses}
-          courseProgress={courseProgress}
-        />
+  courses={courses}
+  courseProgress={courseProgress}
+  expiredCourseIds={expiredCourseIds}
+/>
       </div>
     </main>
   );
