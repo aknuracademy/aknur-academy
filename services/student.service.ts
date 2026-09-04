@@ -55,13 +55,14 @@ export async function getStudentCourses(studentId: number) {
   const { data, error } = await supabase
     .from("student_courses")
     .select(`
-      course_id,
-      courses (
-        id,
-        title,
-        description
-      )
-    `)
+  course_id,
+  access_expires_at,
+  courses (
+    id,
+    title,
+    description
+  )
+`)
     .eq("student_id", studentId);
 
   if (error) {
@@ -69,4 +70,24 @@ export async function getStudentCourses(studentId: number) {
   }
 
   return data ?? [];
+}
+export async function getStudentCourseAccess(
+  studentId: number,
+  courseId: number
+) {
+  const { data, error } = await supabase
+    .from("student_courses")
+    .select(`
+      course_id,
+      access_expires_at
+    `)
+    .eq("student_id", studentId)
+    .eq("course_id", courseId)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
 }

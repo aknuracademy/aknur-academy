@@ -15,7 +15,10 @@ import CourseMaterials from "@/components/student/CourseMaterials";
 
 import { getCourseById } from "@/services/course.service";
 import { getVideosByCourse } from "@/services/video.service";
-import { getCurrentStudent } from "@/services/student.service";
+import {
+  getCurrentStudent,
+  getStudentCourseAccess,
+} from "@/services/student.service";
 import { getMaterialsByVideo } from "@/services/material.service";
 
 import {
@@ -103,6 +106,30 @@ export default function StudentCoursePage() {
         setStudentName(
           currentStudent.full_name
         );
+        const courseAccess =
+  await getStudentCourseAccess(
+    currentStudent.id,
+    courseId
+  );
+
+if (!courseAccess) {
+  setErrorMessage(
+    "Сізге бұл курсқа доступ берілмеген."
+  );
+  return;
+}
+
+if (
+  courseAccess.access_expires_at &&
+  new Date(
+    courseAccess.access_expires_at
+  ).getTime() < Date.now()
+) {
+  setErrorMessage(
+    "Бұл курсқа қолжетімділік мерзімі аяқталған."
+  );
+  return;
+}
 
         const courseData =
           await getCourseById(courseId);
