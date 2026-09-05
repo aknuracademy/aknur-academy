@@ -7,6 +7,11 @@ import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import Sidebar from "@/components/Sidebar";
 import PageHeader from "@/components/common/PageHeader";
+import {
+  createModule,
+  deleteModule,
+  updateModule,
+} from "@/services/module.service";
 
 type Course = {
   id: number;
@@ -60,6 +65,12 @@ export default function CourseLessonsPage() {
   const [courseTitle, setCourseTitle] = useState("");
 const [courseDescription, setCourseDescription] = useState("");
 const [coursePrice, setCoursePrice] = useState("");
+
+const [editingModuleId, setEditingModuleId] =
+  useState<number | null>(null);
+
+const [editingModuleTitle, setEditingModuleTitle] =
+  useState("");
 
   useEffect(() => {
     if (!courseId || Number.isNaN(courseId)) {
@@ -328,6 +339,44 @@ async function handleAddModule() {
     } else {
       alert("Модуль қосу кезінде қате шықты.");
     }
+  }
+}
+
+async function handleUpdateModuleTitle(
+  moduleId: number
+) {
+  const newTitle = editingModuleTitle.trim();
+
+  if (!newTitle) {
+    alert("Модуль атауын жазыңыз.");
+    return;
+  }
+
+  try {
+    await updateModule(moduleId, newTitle);
+
+    setModules((current) =>
+      current.map((module) =>
+        module.id === moduleId
+          ? {
+              ...module,
+              title: newTitle,
+            }
+          : module
+      )
+    );
+
+    setEditingModuleId(null);
+    setEditingModuleTitle("");
+
+    alert("Модуль атауы өзгертілді.");
+  } catch (error) {
+    console.error(
+      "Модульді өзгерту қатесі:",
+      error
+    );
+
+    alert("Модульді өзгерту кезінде қате шықты.");
   }
 }
 
@@ -849,14 +898,69 @@ async function handleMoveModule(
                       }
                       className="flex w-full items-center justify-between gap-4 text-left"
                     >
-                      <h3 className="text-2xl font-bold text-green-700">
-                        {isOpen ? "▼" : "▶"} 📁{" "}
-                        {module.title}
-                      </h3>
+                      <div className="flex flex-1 items-center gap-3">
+  {editingModuleId === module.id ? (
+    <div className="flex flex-1 items-center gap-2">
+      <input
+        type="text"
+        value={editingModuleTitle}
+        onChange={(event) =>
+          setEditingModuleTitle(event.target.value)
+        }
+        onClick={(event) =>
+          event.stopPropagation()
+        }
+        className="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:border-green-600"
+      />
 
-                      <span className="shrink-0 text-sm font-medium text-gray-500">
-                        {moduleVideos.length} сабақ
-                      </span>
+      <button
+        type="button"
+        onClick={(event) => {
+          event.stopPropagation();
+          handleUpdateModuleTitle(module.id);
+        }}
+        className="shrink-0 rounded-lg bg-green-700 px-3 py-2 text-sm font-medium text-white hover:bg-green-800"
+      >
+        💾 Сақтау
+      </button>
+
+      <button
+        type="button"
+        onClick={(event) => {
+          event.stopPropagation();
+          setEditingModuleId(null);
+          setEditingModuleTitle("");
+        }}
+        className="shrink-0 rounded-lg bg-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300"
+      >
+        Болдырмау
+      </button>
+    </div>
+  ) : (
+    <>
+      <h3 className="text-2xl font-bold text-green-700">
+        {isOpen ? "▼" : "▶"} 📁{" "}
+        {module.title}
+      </h3>
+
+      <button
+        type="button"
+        onClick={(event) => {
+          event.stopPropagation();
+          setEditingModuleId(module.id);
+          setEditingModuleTitle(module.title);
+        }}
+        className="rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+      >
+        ✏️ Өзгерту
+      </button>
+    </>
+  )}
+</div>
+
+<span className="shrink-0 text-sm font-medium text-gray-500">
+  {moduleVideos.length} сабақ
+</span>
                     </button>
 
                     {isOpen && (
