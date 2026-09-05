@@ -85,7 +85,7 @@ export default function Sidebar() {
         </Link>
 
         <Link
-          href="/dashboard/materials"
+         href="/dashboard/materials"
           className={`rounded-lg p-3 transition ${
   isActive("/dashboard/materials")
     ? "bg-green-500 font-bold"
