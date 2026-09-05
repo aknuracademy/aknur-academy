@@ -57,6 +57,10 @@ export default function CourseLessonsPage() {
   const [loading, setLoading] = useState(true);
   const [newModuleTitle, setNewModuleTitle] = useState("");
 
+  const [courseTitle, setCourseTitle] = useState("");
+const [courseDescription, setCourseDescription] = useState("");
+const [coursePrice, setCoursePrice] = useState("");
+
   useEffect(() => {
     if (!courseId || Number.isNaN(courseId)) {
       setLoading(false);
@@ -84,6 +88,37 @@ export default function CourseLessonsPage() {
       if (courseError) {
         throw courseError;
       }
+
+      setCourse(courseData);
+
+setCourseTitle(courseData.title ?? "");
+setCourseDescription(courseData.description ?? "");
+setCoursePrice(
+  courseData.price !== null &&
+  courseData.price !== undefined
+    ? String(courseData.price)
+    : ""
+);
+
+setFullDescription(
+  courseData.full_description ?? ""
+);
+
+setTargetAudience(
+  courseData.target_audience ?? ""
+);
+
+setLearningOutcomes(
+  courseData.learning_outcomes ?? ""
+);
+
+setCourseIncludes(
+  courseData.course_includes ?? ""
+);
+
+setAccessInfo(
+  courseData.access_info ?? ""
+);
 
       const {
         data: videoData,
@@ -142,6 +177,7 @@ export default function CourseLessonsPage() {
       }
 
       setCourse(courseData as Course);
+
       setFullDescription(
   (courseData as Course).full_description ?? ""
 );
@@ -182,12 +218,24 @@ setAccessInfo(
     const { error } = await supabase
       .from("courses")
       .update({
-        full_description: fullDescription.trim() || null,
-        target_audience: targetAudience.trim() || null,
-        learning_outcomes: learningOutcomes.trim() || null,
-        course_includes: courseIncludes.trim() || null,
-        access_info: accessInfo.trim() || null,
-      })
+  title: courseTitle.trim(),
+  description:
+    courseDescription.trim() || null,
+  price:
+    coursePrice.trim() !== ""
+      ? Number(coursePrice)
+      : null,
+  full_description:
+    fullDescription.trim() || null,
+  target_audience:
+    targetAudience.trim() || null,
+  learning_outcomes:
+    learningOutcomes.trim() || null,
+  course_includes:
+    courseIncludes.trim() || null,
+  access_info:
+    accessInfo.trim() || null,
+})
       .eq("id", courseId);
 
     if (error) {
@@ -198,6 +246,13 @@ setAccessInfo(
       current
         ? {
             ...current,
+            title: courseTitle.trim(),
+description:
+  courseDescription.trim() || null,
+price:
+  coursePrice.trim() !== ""
+    ? Number(coursePrice)
+    : null,
             full_description:
               fullDescription.trim() || null,
             target_audience:
@@ -211,6 +266,7 @@ setAccessInfo(
           }
         : current
     );
+    
 
     alert("Курс мәліметтері сәтті сақталды.");
   } catch (error) {
@@ -525,17 +581,54 @@ async function handleMoveModule(
   </summary>
 
   <div className="mt-6">
-    <p className="text-gray-600">
-      {course.description ||
-        "Курс сипаттамасы жазылмаған."}
-    </p>
+  <div>
+    <label className="mb-2 block font-medium text-gray-700">
+      Курс атауы
+    </label>
 
-    <p className="mt-4 font-medium text-gray-700">
-      Бағасы:{" "}
-      {course.price !== null
-        ? `${course.price.toLocaleString("kk-KZ")} ₸`
-        : "Көрсетілмеген"}
-    </p>
+    <input
+      type="text"
+      value={courseTitle}
+      onChange={(event) =>
+        setCourseTitle(event.target.value)
+      }
+      placeholder="Курс атауы"
+      className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600"
+    />
+  </div>
+
+  <div className="mt-6">
+    <label className="mb-2 block font-medium text-gray-700">
+      Қысқа сипаттама
+    </label>
+
+    <input
+      type="text"
+      value={courseDescription}
+      onChange={(event) =>
+        setCourseDescription(event.target.value)
+      }
+      placeholder="Курс туралы қысқа сипаттама"
+      className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600"
+    />
+  </div>
+
+  <div className="mt-6">
+    <label className="mb-2 block font-medium text-gray-700">
+      Бағасы
+    </label>
+
+    <input
+      type="number"
+      min="0"
+      value={coursePrice}
+      onChange={(event) =>
+        setCoursePrice(event.target.value)
+      }
+      placeholder="Мысалы: 44990"
+      className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-green-600"
+    />
+  </div>
 
     <div className="mt-6">
       <label className="mb-2 block font-medium text-gray-700">
