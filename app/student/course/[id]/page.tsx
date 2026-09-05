@@ -70,6 +70,9 @@ export default function StudentCoursePage() {
   const [errorMessage, setErrorMessage] =
     useState("");
 
+    const [isCourseLocked, setIsCourseLocked] =
+  useState(false);
+
   const isCompleted = selectedVideo
     ? completedVideoIds.includes(
         selectedVideo.id
@@ -123,14 +126,13 @@ setCourse(courseData as Course);
     courseId
   );
 
+
 if (!courseAccess) {
-  setErrorMessage(
-    "Сізге бұл курсқа доступ берілмеген."
-  );
-  return;
+  setIsCourseLocked(true);
 }
 
 if (
+  courseAccess &&
   courseAccess.access_expires_at &&
   new Date(
     courseAccess.access_expires_at
@@ -405,6 +407,36 @@ if (
       <CourseHeader
         course={course}
       />
+
+      {isCourseLocked && course && (
+  <div className="mx-auto mt-6 max-w-7xl px-5 lg:px-8">
+    <div className="rounded-2xl bg-white p-6 text-center shadow">
+      <div className="text-4xl">
+        🔒
+      </div>
+
+      <h2 className="mt-3 text-xl font-bold">
+        Бұл курс сатып алынбаған
+      </h2>
+
+      <p className="mt-2 text-gray-600">
+        Курсты толық ашу үшін сатып алыңыз.
+      </p>
+
+      <a
+        href={`https://wa.me/77766565747?text=${encodeURIComponent(
+          `Сәлеметсіз бе! Мен ${course.title} курсын сатып алғым келеді.`
+        )}`}
+        target="_blank"
+        rel="noreferrer"
+        className="mt-5 inline-block rounded-lg bg-green-600 px-6 py-3 font-bold text-white hover:bg-green-700"
+      >
+        Курсты сатып алу
+      </a>
+    </div>
+  </div>
+)}
+
       {course && (
   <div className="mx-auto mt-6 max-w-7xl px-5 lg:px-8">
     <details className="group rounded-2xl bg-white p-6 shadow">
@@ -520,17 +552,19 @@ if (
 
         <section className="overflow-hidden rounded-2xl bg-white shadow">
           <VideoPlayer
-            selectedVideo={selectedVideo}
-            isCompleted={isCompleted}
-            completing={completing}
-            onComplete={
-              handleCompleteVideo
-            }
-          />
+  selectedVideo={selectedVideo}
+  isCompleted={isCompleted}
+  completing={completing}
+  onComplete={
+    handleCompleteVideo
+  }
+  isLocked={isCourseLocked}
+/>
 
           <CourseMaterials
-            materials={materials}
-          />
+  materials={materials}
+  isLocked={isCourseLocked}
+/>
 
           <LessonNavigation
             onPrevious={

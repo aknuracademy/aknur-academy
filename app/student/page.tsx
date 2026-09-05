@@ -9,6 +9,7 @@ import {
 } from "@/services/student.service";
 
 import { getVideosByCourse } from "@/services/video.service";
+import { getCourses } from "@/services/course.service";
 import { getStudentProgress } from "@/services/progress.service";
 
 import type { Course } from "@/types/course";
@@ -28,6 +29,8 @@ export default function StudentPage() {
 
   const [student, setStudent] = useState<Student | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
+  const [lockedCourseIds, setLockedCourseIds] =
+  useState<number[]>([]);
   const [courseProgress, setCourseProgress] = useState<
     CourseProgress[]
   >([]);
@@ -58,22 +61,29 @@ export default function StudentPage() {
           studentData.id
         );
 
-        const formattedCourses = assignedCourses
-  .flatMap((item) => {
-    if (!item.courses) {
-      return [];
-    }
+        const allCourses = await getCourses();
 
-    return Array.isArray(item.courses)
-      ? item.courses
-      : [item.courses];
-  })
-  .filter((course) => course !== null)
-  .map((course) => ({
+        const assignedCourseIds = new Set(
+  assignedCourses.map((item) => item.course_id)
+);
+
+const lockedIds = allCourses
+  .filter(
+    (course) =>
+      !assignedCourseIds.has(course.id)
+  )
+  .map((course) => course.id);
+
+setLockedCourseIds(lockedIds);
+
+        const formattedCourses = allCourses.map(
+  (course) => ({
     id: course.id,
     title: course.title,
-    description: course.description ?? undefined,
-  })) as Course[];
+    description:
+      course.description ?? undefined,
+  })
+) as Course[];
 
         setCourses(formattedCourses);
 
@@ -286,9 +296,10 @@ setCertificateCount(completedCoursesCount);
 
         <div id="courses" className="mt-10 scroll-mt-6">
   <CourseList
-    courses={courses}
-    courseProgress={courseProgress}
-  />
+  courses={courses}
+  courseProgress={courseProgress}
+  lockedCourseIds={lockedCourseIds}
+/>
 </div>
         
       </div>

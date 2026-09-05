@@ -5,6 +5,7 @@ type VideoPlayerProps = {
   isCompleted: boolean;
   onComplete: () => void;
   completing: boolean;
+  isLocked?: boolean;
 };
 
 function isMp4Video(url: string) {
@@ -53,7 +54,9 @@ export default function VideoPlayer({
   isCompleted,
   onComplete,
   completing,
+  isLocked = false,
 }: VideoPlayerProps) {
+
   if (!selectedVideo) {
     return (
       <div className="flex min-h-[450px] items-center justify-center p-8 text-center">
@@ -71,6 +74,24 @@ export default function VideoPlayer({
       </div>
     );
   }
+
+  if (isLocked) {
+  return (
+    <div className="flex min-h-[450px] items-center justify-center p-8 text-center">
+      <div>
+        <div className="text-6xl">🔒</div>
+
+        <h2 className="mt-5 text-2xl font-bold">
+          Бұл сабақ жабық
+        </h2>
+
+        <p className="mt-2 text-gray-500">
+          Видеосабақты көру үшін курсты сатып алыңыз.
+        </p>
+      </div>
+    </div>
+  );
+}
 
   const videoUrl = selectedVideo.video_url;
   const isMp4 = isMp4Video(videoUrl);

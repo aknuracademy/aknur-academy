@@ -5,6 +5,7 @@ import type {
 
 type CourseMaterialsProps = {
   materials: CourseMaterial[];
+  isLocked?: boolean;
 };
 
 const materialLabels: Record<MaterialType, string> = {
@@ -17,7 +18,9 @@ const materialLabels: Record<MaterialType, string> = {
 
 export default function CourseMaterials({
   materials,
+  isLocked = false,
 }: CourseMaterialsProps) {
+
   const visibleMaterials = materials.filter(
     (material) => material.is_visible
   );
@@ -64,47 +67,55 @@ export default function CourseMaterials({
               </div>
             </div>
 
-            {material.material_type === "text" &&
-              material.content && (
-                <div className="mt-4 whitespace-pre-wrap rounded-lg bg-gray-50 p-4 text-sm leading-6 text-gray-700">
-                  {material.content}
-                </div>
-              )}
+            {isLocked ? (
+  <div className="mt-4 rounded-lg bg-gray-100 p-4 text-center font-medium text-gray-600">
+    🔒 Материалды ашу үшін курсты сатып алыңыз
+  </div>
+) : (
+  <>
+    {material.material_type === "text" &&
+      material.content && (
+        <div className="mt-4 whitespace-pre-wrap rounded-lg bg-gray-50 p-4 text-sm leading-6 text-gray-700">
+          {material.content}
+        </div>
+      )}
 
-            {material.material_type === "image" &&
-              material.file_url && (
-                <img
-                  src={material.file_url}
-                  alt={material.title}
-                  className="mt-4 max-h-96 w-full rounded-lg object-contain"
-                />
-              )}
+    {material.material_type === "image" &&
+      material.file_url && (
+        <img
+          src={material.file_url}
+          alt={material.title}
+          className="mt-4 max-h-96 w-full rounded-lg object-contain"
+        />
+      )}
 
-            {material.material_type !== "text" &&
-              material.file_url && (
-                <div className="mt-4 flex flex-wrap gap-3">
-                  <a
-                    href={material.file_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-block rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-700"
-                  >
-                    👁 Қарау
-                  </a>
+    {material.material_type !== "text" &&
+      material.file_url && (
+        <div className="mt-4 flex flex-wrap gap-3">
+          <a
+            href={material.file_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-700"
+          >
+            👁 Қарау
+          </a>
 
-                  {material.allow_download && (
-                    <a
-  href={material.file_url}
-  target="_blank"
-  rel="noopener noreferrer"
-  download
-  className="inline-block rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-700"
->
-  ⬇ Жүктеу
-</a>
-                  )}
-                </div>
-              )}
+          {material.allow_download && (
+            <a
+              href={material.file_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              download
+              className="inline-block rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-700"
+            >
+              ⬇ Жүктеу
+            </a>
+          )}
+        </div>
+      )}
+  </>
+)}
           </div>
         ))}
       </div>

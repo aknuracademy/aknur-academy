@@ -10,6 +10,7 @@ import {
 } from "@/services/student.service";
 
 import { getVideosByCourse } from "@/services/video.service";
+import { getCourses } from "@/services/course.service";
 import { getStudentProgress } from "@/services/progress.service";
 
 import type { Course } from "@/types/course";
@@ -28,6 +29,9 @@ export default function StudentCoursesPage() {
   const [expiredCourseIds, setExpiredCourseIds] =
   useState<number[]>([]);
 
+  const [lockedCourseIds, setLockedCourseIds] =
+  useState<number[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -44,6 +48,20 @@ export default function StudentCoursesPage() {
         }
 
         const assignedCourses = await getStudentCourses(student.id);
+        const allCourses = await getCourses();
+
+        const assignedCourseIds = new Set(
+  assignedCourses.map((item) => item.course_id)
+);
+
+const lockedIds = allCourses
+  .filter(
+    (course) =>
+      !assignedCourseIds.has(course.id)
+  )
+  .map((course) => course.id);
+
+setLockedCourseIds(lockedIds);
 
         const expiredIds = assignedCourses
   .filter((item) => {
@@ -61,21 +79,22 @@ export default function StudentCoursesPage() {
 setExpiredCourseIds(expiredIds);
 
         const formattedCourses = assignedCourses
-          .flatMap((item) => {
-            if (!item.courses) {
-              return [];
-            }
+  .flatMap((item) => {
+    if (!item.courses) {
+      return [];
+    }
 
-            return Array.isArray(item.courses)
-              ? item.courses
-              : [item.courses];
-          })
-          .filter((course) => course !== null)
-          .map((course) => ({
-            id: course.id,
-            title: course.title,
-            description: course.description ?? undefined,
-          })) as Course[];
+    return Array.isArray(item.courses)
+      ? item.courses
+      : [item.courses];
+  })
+  .filter((course) => course !== null)
+  .map((course) => ({
+    id: course.id,
+    title: course.title,
+    description:
+      course.description ?? undefined,
+  })) as Course[];
 
         setCourses(formattedCourses);
 
@@ -182,6 +201,7 @@ setExpiredCourseIds(expiredIds);
   courses={courses}
   courseProgress={courseProgress}
   expiredCourseIds={expiredCourseIds}
+  lockedCourseIds={lockedCourseIds}
 />
       </div>
     </main>

@@ -15,6 +15,7 @@ type CourseListProps = {
   courses: Course[];
   courseProgress: CourseProgress[];
   expiredCourseIds?: number[];
+  lockedCourseIds?: number[];
   showHeader?: boolean;
 };
 
@@ -22,6 +23,7 @@ export default function CourseList({
   courses,
   courseProgress,
   expiredCourseIds,
+  lockedCourseIds,
   showHeader = true,
 }: CourseListProps) {
 
@@ -58,6 +60,9 @@ export default function CourseList({
 
             const isExpired =
   expiredCourseIds?.includes(course.id) ?? false;
+
+  const isLocked =
+  lockedCourseIds?.includes(course.id) ?? false;
 
             const totalLessons =
               progress?.totalLessons ?? 0;
@@ -111,7 +116,37 @@ export default function CourseList({
                   </p>
                 </div>
 
-                {isExpired ? (
+                {isLocked ? (
+  <div className="mt-6 space-y-3">
+    <div className="rounded-lg bg-gray-100 px-5 py-3 text-center font-bold text-gray-600">
+      🔒 Курс сатып алынбаған
+    </div>
+
+    <button
+      type="button"
+      onClick={() =>
+        router.push(
+          `/student/course/${course.id}`
+        )
+      }
+      className="w-full rounded-lg border border-gray-300 px-5 py-3 font-bold text-gray-700 transition hover:bg-gray-50"
+    >
+      👁 Курсты көру
+    </button>
+
+    <a
+      href={`https://wa.me/77766565747?text=${encodeURIComponent(
+        `Сәлеметсіз бе! Мен ${course.title} курсын сатып алғым келеді.`
+      )}`}
+      target="_blank"
+      rel="noreferrer"
+      className="block w-full rounded-lg bg-green-600 px-5 py-3 text-center font-bold text-white transition hover:bg-green-700"
+    >
+      Курсты сатып алу
+    </a>
+  </div>
+) : isExpired ? (
+  
   <div className="mt-6 space-y-3">
     <div className="rounded-lg bg-red-50 px-5 py-3 text-center font-bold text-red-600">
       Мерзімі аяқталған
