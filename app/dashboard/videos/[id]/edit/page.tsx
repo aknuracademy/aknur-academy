@@ -22,6 +22,8 @@ export default function EditVideoPage() {
 
   const [courseId, setCourseId] = useState<number | null>(null);
   const [moduleId, setModuleId] = useState("");
+  const [originalModuleId, setOriginalModuleId] =
+  useState("");
 
   const [modules, setModules] = useState<Module[]>([]);
 
@@ -58,11 +60,14 @@ export default function EditVideoPage() {
     setVideoUrl(videoData.video_url ?? "");
     setDuration(videoData.duration ?? "");
     setCourseId(videoData.course_id);
-    setModuleId(
-      videoData.module_id
-        ? String(videoData.module_id)
-        : ""
-    );
+
+    const currentModuleId =
+  videoData.module_id
+    ? String(videoData.module_id)
+    : "";
+
+setModuleId(currentModuleId);
+setOriginalModuleId(currentModuleId);
 
     const { data: moduleData, error: moduleError } =
       await supabase
@@ -104,7 +109,9 @@ export default function EditVideoPage() {
         title: title.trim(),
         video_url: videoUrl.trim(),
         duration: duration.trim() || null,
-        module_id: Number(moduleId),
+        module_id: Number(
+  moduleId || originalModuleId
+),
       })
       .eq("id", videoId);
 
