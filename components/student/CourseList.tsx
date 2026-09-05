@@ -14,7 +14,7 @@ export type CourseProgress = {
 type CourseListProps = {
   courses: Course[];
   courseProgress: CourseProgress[];
-  expiredCourseIds: number[];
+  expiredCourseIds?: number[];
   showHeader?: boolean;
 };
 
@@ -57,7 +57,7 @@ export default function CourseList({
             );
 
             const isExpired =
-  expiredCourseIds.includes(course.id);
+  expiredCourseIds?.includes(course.id) ?? false;
 
             const totalLessons =
               progress?.totalLessons ?? 0;
