@@ -31,6 +31,7 @@ type Video = {
   course_id: number;
   module_id: number | null;
   position: number | null;
+  video_url: string | null;
 };
 
 type Module = {
@@ -136,7 +137,7 @@ setAccessInfo(
         error: videoError,
       } = await supabase
         .from("videos")
-        .select("id, title, course_id, module_id")
+        .select("id, title, course_id, module_id, position, video_url")
         .eq("course_id", courseId)
         .order("position", { ascending: true })
 
@@ -1013,6 +1014,32 @@ async function handleMoveModule(
                                     {video.title}
                                   </h4>
 
+                                  {video.video_url ? (
+  <div className="mt-3 flex flex-wrap items-center gap-2">
+    <span className="rounded-lg bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700">
+      {video.video_url.includes("youtube.com") ||
+      video.video_url.includes("youtu.be")
+        ? "▶️ YouTube"
+        : "🎬 MP4"}
+    </span>
+
+    <a
+      href={video.video_url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+    >
+      👁 Видеоны көру
+    </a>
+  </div>
+) : (
+  <p className="mt-2 text-sm text-red-500">
+    Видео жүктелмеген
+  </p>
+)}
+
+                                  
+
                                   <div className="mt-4 flex flex-wrap gap-3">
                                     <Link
                                       href={`/dashboard/videos/${video.id}/edit`}
@@ -1098,6 +1125,8 @@ async function handleMoveModule(
                           <h4 className="mt-1 text-xl font-bold">
                             {video.title}
                           </h4>
+
+                          
 
                           <div className="mt-4 flex flex-wrap gap-3">
                             <Link
