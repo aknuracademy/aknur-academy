@@ -144,22 +144,40 @@ export async function updateMaterial(
     is_preview: boolean;
   }
 ) {
-  const { error } = await supabase
-    .from("course_materials")
-    .update({
-      title: data.title,
-      description: data.description ?? null,
-      material_type: data.material_type,
-      file_url: data.file_url ?? null,
-      content: data.content ?? null,
-      is_visible: data.is_visible,
-      allow_download: data.allow_download,
-      is_required: data.is_required,
-      is_preview: data.is_preview,
-    })
-    .eq("id", materialId);
+  const updateData: Record<string, unknown> = {
+    title: data.title,
+    description: data.description ?? null,
+    material_type: data.material_type,
+    content:
+      data.material_type === "text"
+        ? data.content ?? null
+        : null,
+    is_visible: data.is_visible,
+    allow_download: data.allow_download,
+    is_required: data.is_required,
+    is_preview: data.is_preview,
+  };
+
+  // Тек жаңа файл таңдалса ғана file_url өзгереді
+  if (data.file_url !== undefined) {
+    updateData.file_url = data.file_url;
+  }
+
+  const { data: updatedData, error } =
+    await supabase
+      .from("course_materials")
+      .update(updateData)
+      .eq("id", materialId)
+      .select("*")
+      .single();
 
   if (error) {
     throw error;
   }
+
+  if (!updatedData) {
+    throw new Error("Материал жаңартылмады.");
+  }
+
+  return updatedData;
 }
