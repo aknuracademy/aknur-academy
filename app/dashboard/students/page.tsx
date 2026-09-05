@@ -547,51 +547,69 @@ accessMonths: Number(accessMonths),
 </div>
 
           <div className="mt-6">
-            <p className="font-medium">
-              Курстарды таңдаңыз
-            </p>
+  <p className="font-medium">
+    Курстарды таңдаңыз
+  </p>
 
-            {courses.length === 0 ? (
-              <div className="mt-3 rounded-xl bg-yellow-50 p-4 text-yellow-800">
-                Әзірге курс қосылмаған.
-              </div>
-            ) : (
-              <div className="mt-3 grid gap-3 md:grid-cols-2">
-                {courses.map((course) => {
-                  const isChecked =
-                    newStudentCourseIds.includes(
+  {courses.length === 0 ? (
+    <div className="mt-3 rounded-xl bg-yellow-50 p-4 text-yellow-800">
+      Әзірге курс қосылмаған.
+    </div>
+  ) : (
+    <details className="relative mt-3">
+      <summary className="cursor-pointer list-none rounded-xl border border-gray-300 bg-white px-4 py-3">
+        <div className="flex items-center justify-between gap-3">
+          <span>
+            {newStudentCourseIds.length === 0
+              ? "Курстарды таңдаңыз"
+              : `${newStudentCourseIds.length} курс таңдалды`}
+          </span>
+
+          <span className="text-gray-500">
+            ▼
+          </span>
+        </div>
+      </summary>
+
+      <div className="absolute z-20 mt-2 max-h-72 w-full overflow-y-auto rounded-xl border border-gray-200 bg-white p-3 shadow-lg">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {courses.map((course) => {
+            const isChecked =
+              newStudentCourseIds.includes(
+                course.id
+              );
+
+            return (
+              <label
+                key={course.id}
+                className={`flex cursor-pointer items-center gap-3 rounded-lg p-3 transition ${
+                  isChecked
+                    ? "bg-green-50"
+                    : "hover:bg-gray-50"
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={isChecked}
+                  onChange={() =>
+                    toggleNewStudentCourse(
                       course.id
-                    );
+                    )
+                  }
+                  className="h-5 w-5 accent-green-600"
+                />
 
-                  return (
-                    <label
-                      key={course.id}
-                      className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition ${
-                        isChecked
-                          ? "border-green-600 bg-green-50"
-                          : "border-gray-200 hover:bg-gray-50"
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={() =>
-                          toggleNewStudentCourse(
-                            course.id
-                          )
-                        }
-                        className="h-5 w-5 accent-green-600"
-                      />
-
-                      <span className="font-medium">
-                        {course.title}
-                      </span>
-                    </label>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+                <span className="font-medium">
+                  {course.title}
+                </span>
+              </label>
+            );
+          })}
+        </div>
+      </div>
+    </details>
+  )}
+</div>
 
           <button
             type="button"

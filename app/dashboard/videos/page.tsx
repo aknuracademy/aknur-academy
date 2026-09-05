@@ -470,13 +470,13 @@ export default function VideosPage() {
                 Әзірге видео жоқ
               </p>
             ) : (
-              <div className="mt-5 space-y-4">
+              <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
                 {videos.map((video) => (
                   <div
                     key={video.id}
-                    className="rounded-xl border p-5"
+                    className="flex h-full flex-col rounded-xl border p-5"
                   >
-                    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                    <div className="flex h-full flex-col">
                       <div>
                         <h3 className="text-xl font-bold text-green-700">
                           {video.title}
@@ -504,34 +504,34 @@ export default function VideosPage() {
                         </p>
                       </div>
 
-                      <div className="flex flex-wrap gap-2">
-                        <a
-                          href={`/dashboard/videos/${video.id}`}
-                          className="rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
-                        >
-                          ▶️ Көру
-                        </a>
+                     <div className="mt-auto grid grid-cols-3 gap-2 pt-4">
+  <a
+    href={`/dashboard/videos/${video.id}`}
+    className="rounded-lg bg-blue-500 px-2 py-2 text-center text-xs font-semibold text-white hover:bg-blue-600"
+  >
+    ▶ Көру
+  </a>
 
-                        <a
-                          href={`/dashboard/videos/${video.id}/edit`}
-                          className="rounded-lg bg-yellow-500 px-4 py-2 text-white hover:bg-yellow-600"
-                        >
-                          ✏️ Өңдеу
-                        </a>
+  <a
+    href={`/dashboard/videos/${video.id}/edit`}
+    className="rounded-lg bg-yellow-500 px-2 py-2 text-center text-xs font-semibold text-white hover:bg-yellow-600"
+  >
+    ✏️ Өңдеу
+  </a>
 
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleDeleteVideo(
-                              video.id,
-                              video.title
-                            )
-                          }
-                          className="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600"
-                        >
-                          🗑️ Өшіру
-                        </button>
-                      </div>
+  <button
+    type="button"
+    onClick={() =>
+      handleDeleteVideo(
+        video.id,
+        video.title
+      )
+    }
+    className="rounded-lg bg-red-500 px-2 py-2 text-xs font-semibold text-white hover:bg-red-600"
+  >
+    🗑 Өшіру
+  </button>
+</div>
                     </div>
                   </div>
                 ))}
