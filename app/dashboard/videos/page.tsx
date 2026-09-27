@@ -6,6 +6,7 @@ import Sidebar from "@/components/Sidebar";
 
 import type { Course } from "@/types/course";
 import type { Video } from "@/types/video";
+import RichTextEditor from "@/components/RichTextEditor";
 
 type VideoType = "youtube" | "mp4";
 
@@ -34,9 +35,41 @@ export default function VideosPage() {
   const [selectedFile, setSelectedFile] =
     useState<File | null>(null);
 
+    type DraftVideoBlock = {
+  id: string;
+  videoType: VideoType;
+  videoUrl: string;
+  file: File | null;
+};
+
+const [videoBlocks, setVideoBlocks] =
+  useState<DraftVideoBlock[]>([]);
+
+  type DraftFileBlock = {
+  id: string;
+  file: File;
+};
+
+const [fileBlocks, setFileBlocks] =
+  useState<DraftFileBlock[]>([]);
+
   const [duration, setDuration] = useState("");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+
+  const [showTextEditor, setShowTextEditor] =
+  useState(false);
+
+const [textContent, setTextContent] =
+  useState("");
+
+  type DraftTextBlock = {
+  id: string;
+  content: string;
+};
+
+const [textBlocks, setTextBlocks] =
+  useState<DraftTextBlock[]>([]);
 
   useEffect(() => {
     loadCourses();
@@ -115,50 +148,80 @@ export default function VideosPage() {
   ) {
     const file = event.target.files?.[0] ?? null;
 
-    setSelectedFile(file);
-    setMessage("");
+if (file && file.size > 50 * 1024 * 1024) {
+  alert("Файл көлемі 50 MB-тан аспауы керек.");
+
+  event.target.value = "";
+  setSelectedFile(null);
+
+  return;
+}
+
+setSelectedFile(file);
+setMessage("");
   }
+
+  function handleMaterialFileChange(
+  event: React.ChangeEvent<HTMLInputElement>
+) {
+  const file = event.target.files?.[0];
+
+  if (!file) {
+    return;
+  }
+
+  setFileBlocks((current) => [
+    ...current,
+    {
+      id: crypto.randomUUID(),
+      file,
+    },
+  ]);
+
+  event.target.value = "";
+}
 
   async function uploadMp4File() {
-    if (!selectedFile) {
-      throw new Error("MP4 файлды таңдаңыз.");
-    }
-
-    if (selectedFile.size > 50 * 1024 * 1024) {
-      throw new Error(
-        "Файл көлемі 50 MB-тан аспауы керек."
-      );
-    }
-
-    const extension =
-      selectedFile.name
-        .split(".")
-        .pop()
-        ?.toLowerCase() || "mp4";
-
-    const fileName =
-      `${Date.now()}-${crypto.randomUUID()}.${extension}`;
-
-    const { error: uploadError } =
-      await supabase.storage
-        .from("course-videos")
-        .upload(fileName, selectedFile, {
-          cacheControl: "3600",
-          upsert: false,
-          contentType:
-            selectedFile.type || "video/mp4",
-        });
-
-    if (uploadError) {
-      throw uploadError;
-    }
-
-    const { data } = supabase.storage
-      .from("course-videos")
-      .getPublicUrl(fileName);
-
-    return data.publicUrl;
+  if (!selectedFile) {
+    throw new Error("MP4 файлды таңдаңыз.");
   }
+
+  if (selectedFile.size > 50 * 1024 * 1024) {
+    throw new Error(
+      "Файл көлемі 50 MB-тан аспауы керек."
+    );
+  }
+
+  const extension =
+    selectedFile.name
+      .split(".")
+      .pop()
+      ?.toLowerCase() || "mp4";
+
+  const fileName =
+    `${Date.now()}-${crypto.randomUUID()}.${extension}`;
+
+  const { error: uploadError } =
+    await supabase.storage
+      .from("course-videos")
+      .upload(fileName, selectedFile, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType:
+          selectedFile.type || "video/mp4",
+      });
+
+  if (uploadError) {
+    throw uploadError;
+  }
+
+  const { data } = supabase.storage
+    .from("course-videos")
+    .getPublicUrl(fileName);
+
+  return data.publicUrl;
+}
+
 
   async function handleAddVideo() {
     if (!courseId) {
@@ -176,21 +239,10 @@ export default function VideosPage() {
       return;
     }
 
-    if (
-      videoType === "youtube" &&
-      !videoUrl.trim()
-    ) {
-      alert("YouTube сілтемесін жазыңыз.");
-      return;
-    }
-
-    if (
-      videoType === "mp4" &&
-      !selectedFile
-    ) {
-      alert("MP4 файлды таңдаңыз.");
-      return;
-    }
+    if (videoBlocks.length === 0) {
+  alert("Кемінде бір видео қосыңыз.");
+  return;
+}
 
     setSaving(true);
     setMessage("");
@@ -203,19 +255,170 @@ export default function VideosPage() {
         finalVideoUrl = await uploadMp4File();
       }
 
-      const { error } = await supabase
-        .from("videos")
-        .insert({
-          course_id: Number(courseId),
-          module_id: Number(moduleId),
-          title: title.trim(),
-          video_url: finalVideoUrl,
-          duration: duration.trim() || null,
-        });
+      const {
+  data: createdVideo,
+  error: videoInsertError,
+} = await supabase
+  .from("videos")
+  .insert({
+    course_id: Number(courseId),
+    module_id: Number(moduleId),
+    title: title.trim(),
+    video_url: finalVideoUrl,
+    duration: duration.trim() || null,
+  })
+  .select("id")
+  .single();
 
-      if (error) {
-        throw error;
-      }
+if (videoInsertError) {
+  throw videoInsertError;
+}
+
+if (!createdVideo) {
+  throw new Error("Сабақ ID алынбады.");
+}
+
+const preparedVideoBlocks = [];
+
+for (const block of videoBlocks) {
+  if (block.videoType === "youtube") {
+    preparedVideoBlocks.push({
+      ...block,
+      finalUrl: block.videoUrl,
+    });
+
+    continue;
+  }
+
+  if (!block.file) {
+    throw new Error("MP4 файл табылмады.");
+  }
+
+  const extension =
+    block.file.name
+      .split(".")
+      .pop()
+      ?.toLowerCase() || "mp4";
+
+  const fileName =
+    `${Date.now()}-${crypto.randomUUID()}.${extension}`;
+
+  const { error: uploadError } =
+    await supabase.storage
+      .from("course-videos")
+      .upload(fileName, block.file, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType:
+          block.file.type || "video/mp4",
+      });
+
+  if (uploadError) {
+    throw uploadError;
+  }
+
+  const { data } = supabase.storage
+    .from("course-videos")
+    .getPublicUrl(fileName);
+
+  preparedVideoBlocks.push({
+    ...block,
+    finalUrl: data.publicUrl,
+  });
+}
+
+const preparedFileBlocks = [];
+
+for (const block of fileBlocks) {
+  const file = block.file;
+
+  const extension =
+    file.name
+      .split(".")
+      .pop()
+      ?.toLowerCase() || "file";
+
+  const safeFileName = file.name
+    .replace(/\.[^/.]+$/, "")
+    .replace(/[^a-zA-Z0-9-_]+/g, "-");
+
+  const fileName =
+    `${Date.now()}-${crypto.randomUUID()}-${safeFileName}.${extension}`;
+
+  const { error: uploadError } =
+    await supabase.storage
+      .from("course-materials")
+      .upload(fileName, file, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType:
+          file.type || "application/octet-stream",
+      });
+
+  if (uploadError) {
+    throw uploadError;
+  }
+
+  const { data } = supabase.storage
+    .from("course-materials")
+    .getPublicUrl(fileName);
+
+  preparedFileBlocks.push({
+    ...block,
+    finalUrl: data.publicUrl,
+  });
+}
+
+const lessonBlocks = [
+  ...textBlocks.map((block, index) => ({
+    lesson_id: createdVideo.id,
+    block_type: "text",
+    title: `Мәтін ${index + 1}`,
+    content: {
+      html: block.content,
+    },
+    position: index,
+  })),
+
+  ...preparedVideoBlocks.map((block, index) => ({
+    lesson_id: createdVideo.id,
+    block_type: "video",
+    title: `Видео ${index + 1}`,
+    content: {
+      type: block.videoType,
+      url: block.finalUrl,
+      fileName: block.file?.name ?? null,
+    },
+    position: textBlocks.length + index,
+  })),
+
+  ...preparedFileBlocks.map((block, index) => ({
+    lesson_id: createdVideo.id,
+    block_type: "file",
+    title: `Файл ${index + 1}`,
+    content: {
+      url: block.finalUrl,
+      fileName: block.file.name,
+      fileType: block.file.type || null,
+      fileSize: block.file.size,
+    },
+    position:
+      textBlocks.length +
+      preparedVideoBlocks.length +
+      index,
+  })),
+];
+
+if (lessonBlocks.length > 0) {
+  const { error: blockInsertError } =
+    await supabase
+      .from("lesson_blocks")
+      .insert(lessonBlocks);
+
+  if (blockInsertError) {
+    throw blockInsertError;
+  }
+}
 
       setMessage("✅ Видео сәтті қосылды!");
 
@@ -227,6 +430,11 @@ export default function VideosPage() {
       setVideoUrl("");
       setSelectedFile(null);
       setDuration("");
+      setTextBlocks([]);
+setTextContent("");
+setShowTextEditor(false);
+setVideoBlocks([]);
+setFileBlocks([]);
 
       await loadVideos();
     } catch (error) {
@@ -359,6 +567,167 @@ export default function VideosPage() {
               className="mt-2 w-full rounded-lg border p-3"
             />
 
+            <div className="mt-5">
+  <button
+    type="button"
+    onClick={() => setShowTextEditor(true)}
+    className="rounded-lg border border-green-600 px-4 py-2 font-medium text-green-700 hover:bg-green-50"
+  >
+    + Мәтін қосу
+    {textBlocks.length > 0 && (
+  <div className="mt-4 space-y-3">
+    {textBlocks.map((block, index) => (
+      <div
+        key={block.id}
+        className="rounded-xl border border-gray-200 bg-gray-50 p-4"
+      >
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <span className="font-medium text-gray-700">
+            📝 Мәтін {index + 1}
+          </span>
+
+          <button
+            type="button"
+            onClick={() =>
+              setTextBlocks((current) =>
+                current.filter(
+                  (item) => item.id !== block.id
+                )
+              )
+            }
+            className="rounded-lg bg-red-50 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-100"
+          >
+            🗑 Өшіру
+          </button>
+        </div>
+
+        <div
+          className="prose max-w-none text-sm"
+          dangerouslySetInnerHTML={{
+            __html: block.content,
+          }}
+        />
+      </div>
+    ))}
+  </div>
+)}
+  </button>
+</div>
+
+{showTextEditor && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+    <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
+      <div className="mb-5 flex items-center justify-between">
+        <h2 className="text-2xl font-bold">
+          Мәтін қосу
+        </h2>
+
+        <button
+          type="button"
+          onClick={() => setShowTextEditor(false)}
+          className="rounded-lg bg-gray-100 px-3 py-2"
+        >
+          ✕
+        </button>
+      </div>
+
+      <RichTextEditor
+        value={textContent}
+        onChange={setTextContent}
+      />
+
+      <div className="mt-6 flex justify-end gap-3">
+  <button
+    type="button"
+    onClick={() => {
+      setTextContent("");
+      setShowTextEditor(false);
+    }}
+    className="rounded-lg bg-gray-200 px-5 py-3 font-medium"
+  >
+    Болдырмау
+  </button>
+
+  <button
+    type="button"
+    onClick={() => {
+      const cleanContent = textContent.trim();
+
+      if (
+        !cleanContent ||
+        cleanContent === "<p></p>"
+      ) {
+        alert("Мәтін жазыңыз.");
+        return;
+      }
+
+      setTextBlocks((current) => [
+        ...current,
+        {
+          id: crypto.randomUUID(),
+          content: cleanContent,
+        },
+      ]);
+
+      setTextContent("");
+      setShowTextEditor(false);
+    }}
+    className="rounded-lg bg-green-700 px-5 py-3 font-medium text-white hover:bg-green-800"
+  >
+    💾 Сақтау
+  </button>
+</div>
+    </div>
+  </div>
+)}
+
+<div className="mt-5">
+  <label className="mb-2 block font-medium">
+    Файл қосу
+  </label>
+
+  <input
+    type="file"
+    onChange={handleMaterialFileChange}
+    className="block w-full rounded-lg border p-3"
+  />
+
+  {fileBlocks.length > 0 && (
+    <div className="mt-4 space-y-3">
+      {fileBlocks.map((block, index) => (
+        <div
+          key={block.id}
+          className="flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4"
+        >
+          <div>
+            <p className="font-medium">
+              📎 Файл {index + 1}
+            </p>
+
+            <p className="mt-1 text-sm text-gray-600">
+              {block.file.name}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() =>
+              setFileBlocks((current) =>
+                current.filter(
+                  (item) => item.id !== block.id
+                )
+              )
+            }
+            className="rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-100"
+          >
+            🗑 Өшіру
+          </button>
+        </div>
+      ))}
+    </div>
+  )}
+</div>
+
             <label className="mt-5 block font-medium">
               Видео түрі
             </label>
@@ -443,14 +812,105 @@ export default function VideosPage() {
             )}
 
             <button
+  type="button"
+  onClick={() => {
+    if (
+      videoType === "youtube" &&
+      !videoUrl.trim()
+    ) {
+      alert("YouTube сілтемесін жазыңыз.");
+      return;
+    }
+
+    if (
+      videoType === "mp4" &&
+      !selectedFile
+    ) {
+      alert("MP4 файлды таңдаңыз.");
+      return;
+    }
+
+    setVideoBlocks((current) => [
+      ...current,
+      {
+        id: crypto.randomUUID(),
+        videoType,
+        videoUrl: videoUrl.trim(),
+        file: selectedFile,
+      },
+    ]);
+
+    setVideoType("youtube");
+    setVideoUrl("");
+    setSelectedFile(null);
+  }}
+  className="mt-4 rounded-lg border border-blue-600 px-4 py-2 font-medium text-blue-700 hover:bg-blue-50"
+>
+  + Видео қосу
+</button>
+
+{videoBlocks.length > 0 && (
+  <div className="mt-4 space-y-3">
+    {videoBlocks.map((block, index) => (
+      <div
+        key={block.id}
+        className="rounded-xl border border-gray-200 bg-gray-50 p-4"
+      >
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="font-medium text-gray-800">
+              🎬 Видео {index + 1}
+            </p>
+
+            <p className="mt-1 text-sm text-gray-500">
+              {block.videoType === "youtube"
+                ? "YouTube"
+                : "MP4 файл"}
+            </p>
+
+            {block.videoType === "youtube" &&
+              block.videoUrl && (
+                <p className="mt-1 break-all text-sm text-blue-600">
+                  {block.videoUrl}
+                </p>
+              )}
+
+            {block.videoType === "mp4" &&
+              block.file && (
+                <p className="mt-1 text-sm text-gray-600">
+                  {block.file.name}
+                </p>
+              )}
+          </div>
+
+          <button
+            type="button"
+            onClick={() =>
+              setVideoBlocks((current) =>
+                current.filter(
+                  (item) => item.id !== block.id
+                )
+              )
+            }
+            className="rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-100"
+          >
+            🗑 Өшіру
+          </button>
+        </div>
+      </div>
+    ))}
+  </div>
+)}
+
+            <button
               type="button"
               onClick={handleAddVideo}
               disabled={saving}
               className="mt-6 w-full rounded-lg bg-green-600 p-3 font-bold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-400"
             >
               {saving
-                ? "Жүктеліп жатыр..."
-                : "➕ Видео қосу"}
+  ? "Сақталуда..."
+  : "💾 Сабақты сақтау"}
             </button>
 
             {message && (

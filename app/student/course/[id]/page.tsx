@@ -13,6 +13,8 @@ import LessonNavigation from "@/components/student/LessonNavigation";
 import ProgressBar from "@/components/student/ProgressBar";
 import CourseMaterials from "@/components/student/CourseMaterials";
 
+import { supabase } from "@/lib/supabase";
+
 import { getCourseById } from "@/services/course.service";
 import { getVideosByCourse } from "@/services/video.service";
 import {
@@ -73,6 +75,25 @@ export default function StudentCoursePage() {
     const [isCourseLocked, setIsCourseLocked] =
   useState(false);
 
+  type LessonBlock = {
+  id: number;
+  lesson_id: number;
+  block_type: "text" | "video" | "file";
+  title: string | null;
+  content: {
+    html?: string;
+    type?: "youtube" | "mp4";
+    url?: string;
+    fileName?: string | null;
+    fileType?: string | null;
+    fileSize?: number;
+  } | null;
+  position: number;
+};
+
+const [lessonBlocks, setLessonBlocks] =
+  useState<LessonBlock[]>([]);
+
   const isCompleted = selectedVideo
     ? completedVideoIds.includes(
         selectedVideo.id
@@ -84,6 +105,38 @@ export default function StudentCoursePage() {
     videos.length > 0 &&
     completedVideoIds.length ===
       videos.length;
+      useEffect(() => {
+  async function loadLessonBlocks() {
+    if (!selectedVideo?.id) {
+      setLessonBlocks([]);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("lesson_blocks")
+      .select(
+        "id, lesson_id, block_type, title, content, position"
+      )
+      .eq("lesson_id", selectedVideo.id)
+      .order("position", { ascending: true });
+
+    if (error) {
+      console.error(
+        "Сабақ блоктарын жүктеу қатесі:",
+        error
+      );
+
+      setLessonBlocks([]);
+      return;
+    }
+
+    setLessonBlocks(
+      (data ?? []) as LessonBlock[]
+    );
+  }
+
+  loadLessonBlocks();
+}, [selectedVideo?.id]);
 
   useEffect(() => {
     async function loadCourse() {
@@ -560,6 +613,143 @@ if (
   }
   isLocked={isCourseLocked}
 />
+
+{lessonBlocks.length > 0 && (
+  <div className="space-y-6 border-t p-6">
+    {lessonBlocks.map((block) => {
+      if (block.block_type === "text") {
+        return (
+          <div
+            key={block.id}
+            className="rounded-xl bg-gray-50 p-5"
+          >
+            {block.title && (
+              <h3 className="mb-3 text-lg font-bold">
+                {block.title}
+              </h3>
+            )}
+
+            <div
+              className="prose max-w-none"
+              dangerouslySetInnerHTML={{
+                __html:
+                  block.content?.html ?? "",
+              }}
+            />
+          </div>
+        );
+      }
+
+      if (block.block_type === "video") {
+  const videoUrl = block.content?.url ?? "";
+  const videoType = block.content?.type;
+
+  const getYouTubeEmbedUrl = (url: string) => {
+    try {
+      const parsedUrl = new URL(url);
+
+      if (parsedUrl.hostname.includes("youtu.be")) {
+        const videoId =
+          parsedUrl.pathname.replace("/", "");
+
+        return videoId
+          ? `https://www.youtube.com/embed/${videoId}`
+          : "";
+      }
+
+      if (
+        parsedUrl.hostname.includes("youtube.com")
+      ) {
+        if (parsedUrl.pathname.includes("/embed/")) {
+          return url;
+        }
+
+        const videoId =
+          parsedUrl.searchParams.get("v");
+
+        return videoId
+          ? `https://www.youtube.com/embed/${videoId}`
+          : "";
+      }
+
+      return "";
+    } catch {
+      return "";
+    }
+  };
+
+  const youtubeEmbedUrl =
+    videoType === "youtube"
+      ? getYouTubeEmbedUrl(videoUrl)
+      : "";
+
+  return (
+    <div
+      key={block.id}
+      className="rounded-xl bg-gray-50 p-5"
+    >
+      {block.title && (
+        <h3 className="mb-3 text-lg font-bold">
+          {block.title}
+        </h3>
+      )}
+
+      {videoType === "youtube" &&
+      youtubeEmbedUrl ? (
+        <div className="aspect-video overflow-hidden rounded-xl bg-black">
+          <iframe
+            src={youtubeEmbedUrl}
+            title={
+              block.title ?? "YouTube видео"
+            }
+            className="h-full w-full"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+      ) : (
+        <video
+          controls
+          preload="metadata"
+          className="w-full rounded-xl bg-black"
+        >
+          <source src={videoUrl} />
+          Браузеріңіз видеоны қолдамайды.
+        </video>
+      )}
+    </div>
+  );
+}
+
+      if (block.block_type === "file") {
+        return (
+          <div
+            key={block.id}
+            className="rounded-xl border p-5"
+          >
+            <p className="font-medium">
+              📎{" "}
+              {block.content?.fileName ||
+                block.title ||
+                "Файл"}
+            </p>
+
+            <a
+              href={block.content?.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 inline-block rounded-lg bg-green-600 px-4 py-2 font-medium text-white"
+            >
+              Файлды ашу
+            </a>
+          </div>
+        );
+      }
+
+      return null;
+    })}
+  </div>
+)}
 
           <CourseMaterials
   materials={materials}
