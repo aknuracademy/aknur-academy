@@ -37,9 +37,20 @@ export default function VideosPage() {
 
     type DraftVideoBlock = {
   id: string;
+  title: string;
   videoType: VideoType;
   videoUrl: string;
   file: File | null;
+
+  texts: {
+    id: string;
+    content: string;
+  }[];
+
+  files: {
+    id: string;
+    file: File;
+  }[];
 };
 
 const [videoBlocks, setVideoBlocks] =
@@ -49,6 +60,9 @@ const [videoBlocks, setVideoBlocks] =
   id: string;
   file: File;
 };
+
+const [activeVideoBlockId, setActiveVideoBlockId] =
+  useState<string | null>(null);
 
 const [fileBlocks, setFileBlocks] =
   useState<DraftFileBlock[]>([]);
@@ -369,45 +383,92 @@ for (const block of fileBlocks) {
   });
 }
 
-const lessonBlocks = [
-  ...textBlocks.map((block, index) => ({
-    lesson_id: createdVideo.id,
-    block_type: "text",
-    title: `Мәтін ${index + 1}`,
-    content: {
-      html: block.content,
-    },
-    position: index,
-  })),
+const lessonBlocks = [];
+let position = 0;
 
-  ...preparedVideoBlocks.map((block, index) => ({
+for (const block of preparedVideoBlocks) {
+  // 1. Видео
+  lessonBlocks.push({
     lesson_id: createdVideo.id,
     block_type: "video",
-    title: `Видео ${index + 1}`,
+    title: block.title,
     content: {
       type: block.videoType,
       url: block.finalUrl,
       fileName: block.file?.name ?? null,
     },
-    position: textBlocks.length + index,
-  })),
+    position,
+  });
 
-  ...preparedFileBlocks.map((block, index) => ({
-    lesson_id: createdVideo.id,
-    block_type: "file",
-    title: `Файл ${index + 1}`,
-    content: {
-      url: block.finalUrl,
-      fileName: block.file.name,
-      fileType: block.file.type || null,
-      fileSize: block.file.size,
-    },
-    position:
-      textBlocks.length +
-      preparedVideoBlocks.length +
-      index,
-  })),
-];
+  position += 1;
+
+  // 2. Осы видеоға тиесілі мәтіндер
+  for (const textBlock of block.texts) {
+    lessonBlocks.push({
+      lesson_id: createdVideo.id,
+      block_type: "text",
+      title: null,
+      content: {
+        html: textBlock.content,
+      },
+      position,
+    });
+
+    position += 1;
+  }
+
+  // 3. Осы видеоға тиесілі файлдар
+  for (const fileBlock of block.files) {
+    const file = fileBlock.file;
+
+    const extension =
+      file.name
+        .split(".")
+        .pop()
+        ?.toLowerCase() || "file";
+
+    const safeFileName = file.name
+      .replace(/\.[^/.]+$/, "")
+      .replace(/[^a-zA-Z0-9-_]+/g, "-");
+
+    const storageFileName =
+      `${Date.now()}-${crypto.randomUUID()}-${safeFileName}.${extension}`;
+
+    const { error: uploadError } =
+      await supabase.storage
+        .from("course-materials")
+        .upload(storageFileName, file, {
+          cacheControl: "3600",
+          upsert: false,
+          contentType:
+            file.type ||
+            "application/octet-stream",
+        });
+
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    const { data } = supabase.storage
+      .from("course-materials")
+      .getPublicUrl(storageFileName);
+
+    lessonBlocks.push({
+      lesson_id: createdVideo.id,
+      block_type: "file",
+      title: file.name,
+      content: {
+        url: data.publicUrl,
+        fileName: file.name,
+        fileType: file.type || null,
+        fileSize: file.size,
+      },
+      position,
+    });
+
+    position += 1;
+  }
+}
 
 if (lessonBlocks.length > 0) {
   const { error: blockInsertError } =
@@ -567,52 +628,6 @@ setFileBlocks([]);
               className="mt-2 w-full rounded-lg border p-3"
             />
 
-            <div className="mt-5">
-  <button
-    type="button"
-    onClick={() => setShowTextEditor(true)}
-    className="rounded-lg border border-green-600 px-4 py-2 font-medium text-green-700 hover:bg-green-50"
-  >
-    + Мәтін қосу
-    {textBlocks.length > 0 && (
-  <div className="mt-4 space-y-3">
-    {textBlocks.map((block, index) => (
-      <div
-        key={block.id}
-        className="rounded-xl border border-gray-200 bg-gray-50 p-4"
-      >
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <span className="font-medium text-gray-700">
-            📝 Мәтін {index + 1}
-          </span>
-
-          <button
-            type="button"
-            onClick={() =>
-              setTextBlocks((current) =>
-                current.filter(
-                  (item) => item.id !== block.id
-                )
-              )
-            }
-            className="rounded-lg bg-red-50 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-100"
-          >
-            🗑 Өшіру
-          </button>
-        </div>
-
-        <div
-          className="prose max-w-none text-sm"
-          dangerouslySetInnerHTML={{
-            __html: block.content,
-          }}
-        />
-      </div>
-    ))}
-  </div>
-)}
-  </button>
-</div>
 
 {showTextEditor && (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
@@ -661,16 +676,31 @@ setFileBlocks([]);
         return;
       }
 
-      setTextBlocks((current) => [
-        ...current,
-        {
-          id: crypto.randomUUID(),
-          content: cleanContent,
-        },
-      ]);
+      if (!activeVideoBlockId) {
+  alert("Алдымен видеоны таңдаңыз.");
+  return;
+}
 
-      setTextContent("");
-      setShowTextEditor(false);
+setVideoBlocks((current) =>
+  current.map((videoBlock) =>
+    videoBlock.id === activeVideoBlockId
+      ? {
+          ...videoBlock,
+          texts: [
+            ...videoBlock.texts,
+            {
+              id: crypto.randomUUID(),
+              content: cleanContent,
+            },
+          ],
+        }
+      : videoBlock
+  )
+);
+
+setTextContent("");
+setShowTextEditor(false);
+setActiveVideoBlockId(null);
     }}
     className="rounded-lg bg-green-700 px-5 py-3 font-medium text-white hover:bg-green-800"
   >
@@ -681,52 +711,6 @@ setFileBlocks([]);
   </div>
 )}
 
-<div className="mt-5">
-  <label className="mb-2 block font-medium">
-    Файл қосу
-  </label>
-
-  <input
-    type="file"
-    onChange={handleMaterialFileChange}
-    className="block w-full rounded-lg border p-3"
-  />
-
-  {fileBlocks.length > 0 && (
-    <div className="mt-4 space-y-3">
-      {fileBlocks.map((block, index) => (
-        <div
-          key={block.id}
-          className="flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4"
-        >
-          <div>
-            <p className="font-medium">
-              📎 Файл {index + 1}
-            </p>
-
-            <p className="mt-1 text-sm text-gray-600">
-              {block.file.name}
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={() =>
-              setFileBlocks((current) =>
-                current.filter(
-                  (item) => item.id !== block.id
-                )
-              )
-            }
-            className="rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-100"
-          >
-            🗑 Өшіру
-          </button>
-        </div>
-      ))}
-    </div>
-  )}
-</div>
 
             <label className="mt-5 block font-medium">
               Видео түрі
@@ -831,14 +815,17 @@ setFileBlocks([]);
     }
 
     setVideoBlocks((current) => [
-      ...current,
-      {
-        id: crypto.randomUUID(),
-        videoType,
-        videoUrl: videoUrl.trim(),
-        file: selectedFile,
-      },
-    ]);
+  ...current,
+  {
+    id: crypto.randomUUID(),
+    title: title.trim(),
+    videoType,
+    videoUrl: videoUrl.trim(),
+    file: selectedFile,
+    texts: [],
+    files: [],
+  },
+]);
 
     setVideoType("youtube");
     setVideoUrl("");
@@ -851,54 +838,163 @@ setFileBlocks([]);
 
 {videoBlocks.length > 0 && (
   <div className="mt-4 space-y-3">
-    {videoBlocks.map((block, index) => (
-      <div
-        key={block.id}
-        className="rounded-xl border border-gray-200 bg-gray-50 p-4"
+    {videoBlocks.map((block) => (
+  <div
+    key={block.id}
+    className="rounded-xl border border-gray-200 bg-gray-50 p-4"
+  >
+    <div className="flex items-start justify-between gap-3">
+      <div>
+        <p className="font-semibold text-gray-900">
+          🎬 {block.title}
+        </p>
+
+        <p className="mt-1 text-sm text-gray-500">
+          {block.videoType === "youtube"
+            ? "YouTube"
+            : "MP4 файл"}
+        </p>
+
+        {block.videoType === "youtube" &&
+          block.videoUrl && (
+            <p className="mt-1 break-all text-sm text-blue-600">
+              {block.videoUrl}
+            </p>
+          )}
+
+        {block.videoType === "mp4" &&
+          block.file && (
+            <p className="mt-1 text-sm text-gray-600">
+              {block.file.name}
+            </p>
+          )}
+      </div>
+
+      <button
+        type="button"
+        onClick={() =>
+          setVideoBlocks((current) =>
+            current.filter(
+              (item) => item.id !== block.id
+            )
+          )
+        }
+        className="rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-100"
       >
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="font-medium text-gray-800">
-              🎬 Видео {index + 1}
-            </p>
+        🗑 Өшіру
+      </button>
+    </div>
 
-            <p className="mt-1 text-sm text-gray-500">
-              {block.videoType === "youtube"
-                ? "YouTube"
-                : "MP4 файл"}
-            </p>
+    <div className="mt-4 flex flex-wrap gap-2">
+      <button
+        type="button"
+        onClick={() => {
+          setActiveVideoBlockId(block.id);
+          setTextContent("");
+          setShowTextEditor(true);
+        }}
+        className="rounded-lg border border-green-600 px-3 py-2 text-sm font-medium text-green-700 hover:bg-green-50"
+      >
+        + Мәтін қосу
+      </button>
 
-            {block.videoType === "youtube" &&
-              block.videoUrl && (
-                <p className="mt-1 break-all text-sm text-blue-600">
-                  {block.videoUrl}
-                </p>
-              )}
+      <label className="cursor-pointer rounded-lg border border-blue-600 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50">
+        + Файл қосу
 
-            {block.videoType === "mp4" &&
-              block.file && (
-                <p className="mt-1 text-sm text-gray-600">
-                  {block.file.name}
-                </p>
-              )}
-          </div>
+        <input
+          type="file"
+          className="hidden"
+          onChange={(event) => {
+            const file =
+              event.target.files?.[0];
+
+            if (!file) {
+              return;
+            }
+
+            setVideoBlocks((current) =>
+              current.map((item) =>
+                item.id === block.id
+                  ? {
+                      ...item,
+                      files: [
+                        ...item.files,
+                        {
+                          id: crypto.randomUUID(),
+                          file,
+                        },
+                      ],
+                    }
+                  : item
+              )
+            );
+
+            event.target.value = "";
+          }}
+        />
+      </label>
+    </div>
+
+    {block.texts.length > 0 && (
+  <div className="mt-4 space-y-2">
+    {block.texts.map((textBlock, index) => (
+      <div
+        key={textBlock.id}
+        className="rounded-lg border bg-white p-3"
+      >
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <span className="text-sm font-medium text-gray-700">
+            📝 Мәтін {index + 1}
+          </span>
 
           <button
             type="button"
             onClick={() =>
               setVideoBlocks((current) =>
-                current.filter(
-                  (item) => item.id !== block.id
+                current.map((item) =>
+                  item.id === block.id
+                    ? {
+                        ...item,
+                        texts: item.texts.filter(
+                          (text) =>
+                            text.id !== textBlock.id
+                        ),
+                      }
+                    : item
                 )
               )
             }
-            className="rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-100"
+            className="rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-100"
           >
             🗑 Өшіру
           </button>
         </div>
+
+        <div
+          className="text-sm"
+          dangerouslySetInnerHTML={{
+            __html: textBlock.content,
+          }}
+        />
       </div>
     ))}
+  </div>
+)}
+
+    {block.files.length > 0 && (
+      <div className="mt-3 space-y-2">
+        {block.files.map((fileBlock) => (
+          <div
+            key={fileBlock.id}
+            className="rounded-lg bg-white p-3 text-sm"
+          >
+            📎 {fileBlock.file.name}
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+))}
   </div>
 )}
 

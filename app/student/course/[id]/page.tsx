@@ -604,15 +604,15 @@ if (
         </div>
 
         <section className="overflow-hidden rounded-2xl bg-white shadow">
-          <VideoPlayer
-  selectedVideo={selectedVideo}
-  isCompleted={isCompleted}
-  completing={completing}
-  onComplete={
-    handleCompleteVideo
-  }
-  isLocked={isCourseLocked}
-/>
+          {lessonBlocks.length === 0 && (
+  <VideoPlayer
+    selectedVideo={selectedVideo}
+    isCompleted={isCompleted}
+    completing={completing}
+    onComplete={handleCompleteVideo}
+    isLocked={isCourseLocked}
+  />
+)}
 
 {lessonBlocks.length > 0 && (
   <div className="space-y-6 border-t p-6">
