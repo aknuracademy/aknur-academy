@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import Link from "@tiptap/extension-link";
 
 type RichTextEditorProps = {
   value: string;
@@ -14,7 +15,20 @@ export default function RichTextEditor({
   onChange,
 }: RichTextEditorProps) {
   const editor = useEditor({
-    extensions: [StarterKit],
+    extensions: [
+  StarterKit,
+  Link.configure({
+    openOnClick: false,
+    autolink: true,
+    linkOnPaste: true,
+    HTMLAttributes: {
+      target: "_blank",
+      rel: "noopener noreferrer",
+      class: "text-blue-600 underline",
+    },
+  }),
+],
+
     content: value,
     immediatelyRender: false,
     onUpdate: ({ editor }) => {
@@ -130,6 +144,54 @@ export default function RichTextEditor({
         >
           1. Тізім
         </button>
+
+        <button
+  type="button"
+  onClick={() => {
+    const previousUrl =
+      editor.getAttributes("link").href || "";
+
+    const url = window.prompt(
+      "Сілтемені енгізіңіз:",
+      previousUrl
+    );
+
+    if (url === null) {
+      return;
+    }
+
+    if (!url.trim()) {
+      editor
+        .chain()
+        .focus()
+        .extendMarkRange("link")
+        .unsetLink()
+        .run();
+
+      return;
+    }
+
+    const finalUrl =
+      url.startsWith("http://") ||
+      url.startsWith("https://")
+        ? url
+        : `https://${url}`;
+
+    editor
+      .chain()
+      .focus()
+      .extendMarkRange("link")
+      .setLink({ href: finalUrl })
+      .run();
+  }}
+  className={`rounded-md px-3 py-1.5 text-sm ${
+    editor.isActive("link")
+      ? "bg-gray-900 text-white"
+      : "bg-white"
+  }`}
+>
+  🔗 Сілтеме
+</button>
 
         <button
           type="button"
