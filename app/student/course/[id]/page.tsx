@@ -751,6 +751,23 @@ if (
   </div>
 )}
 
+{lessonBlocks.length > 0 && !isCourseLocked && (
+  <div className="border-t p-6">
+    <button
+      type="button"
+      onClick={handleCompleteVideo}
+      disabled={isCompleted || completing}
+      className="rounded-lg bg-green-600 px-6 py-3 font-bold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+    >
+      {completing
+        ? "Сақталып жатыр..."
+        : isCompleted
+          ? "✅ Сабақ аяқталды"
+          : "Сабақты аяқтау"}
+    </button>
+  </div>
+)}
+
           <CourseMaterials
   materials={materials}
   isLocked={isCourseLocked}
