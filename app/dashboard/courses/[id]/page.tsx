@@ -1014,23 +1014,28 @@ async function handleMoveModule(
                                     {video.title}
                                   </h4>
 
-                                  {video.video_url ? (
-  <div className="mt-3 flex flex-wrap items-center gap-2">
-    <span className="rounded-lg bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700">
-      {video.video_url.includes("youtube.com") ||
-      video.video_url.includes("youtu.be")
-        ? "▶️ YouTube"
-        : "🎬 MP4"}
-    </span>
-
-    <a
-      href={video.video_url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-    >
-      👁 Видеоны көру
-    </a>
+{video.video_url ? (
+  <div className="mt-4 overflow-hidden rounded-xl border bg-black">
+    {video.video_url.includes("youtube.com") ||
+    video.video_url.includes("youtu.be") ? (
+      <iframe
+        src={video.video_url
+          .replace("watch?v=", "embed/")
+          .replace("youtu.be/", "youtube.com/embed/")
+          .replace("shorts/", "embed/")}
+        title={video.title}
+        className="aspect-video w-full"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+      />
+    ) : (
+      <video
+        src={video.video_url}
+        controls
+        preload="metadata"
+        className="aspect-video w-full bg-black"
+      />
+    )}
   </div>
 ) : (
   <p className="mt-2 text-sm text-red-500">
