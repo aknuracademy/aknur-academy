@@ -795,6 +795,32 @@ setActiveVideoBlockId(null);
               </>
             )}
 
+            {videoType === "youtube" && videoUrl.trim() && (
+  <div className="mt-4 overflow-hidden rounded-xl border bg-black">
+    <iframe
+      src={videoUrl
+        .replace("watch?v=", "embed/")
+        .replace("youtu.be/", "youtube.com/embed/")
+        .replace("shorts/", "embed/")}
+      title="Видео preview"
+      className="aspect-video w-full"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowFullScreen
+    />
+  </div>
+)}
+
+{videoType === "mp4" && selectedFile && (
+  <div className="mt-4 overflow-hidden rounded-xl border bg-black">
+    <video
+      src={URL.createObjectURL(selectedFile)}
+      controls
+      preload="metadata"
+      className="aspect-video w-full bg-black"
+    />
+  </div>
+)}
+
             <button
   type="button"
   onClick={() => {
