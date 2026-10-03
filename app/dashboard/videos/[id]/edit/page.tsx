@@ -703,32 +703,66 @@ try {
           Таңдалған файл: {selectedFile.name}
         </p>
       )}
+
     </>
   )}
 </div>
 
-<button
-  type="button"
-  onClick={handleAddVideoBlock}
-  className="rounded-lg border border-blue-600 px-4 py-2 font-medium text-blue-700 hover:bg-blue-50"
->
-  <div>
-  <label className="mb-2 block font-medium">
-    Жаңа видео атауы
-  </label>
+  <div className="rounded-xl border-2 border-blue-500 p-4">
+  <div className="grid gap-4 md:grid-cols-2">
+    {/* Сол жақ */}
+    <div className="flex flex-col justify-center">
+      <label className="mb-2 block font-medium text-blue-700">
+        Жаңа видео атауы
+      </label>
 
-  <input
-    type="text"
-    value={newVideoTitle}
-    onChange={(event) =>
-      setNewVideoTitle(event.target.value)
-    }
-    placeholder="Мысалы: Кіріспе сабақ"
-    className="w-full rounded-lg border p-3"
-  />
+      <input
+        type="text"
+        value={newVideoTitle}
+        onChange={(event) =>
+          setNewVideoTitle(event.target.value)
+        }
+        placeholder="Мысалы: Кіріспе сабақ"
+        className="w-full rounded-lg border p-3"
+      />
+
+      <button
+        type="button"
+        onClick={handleAddVideoBlock}
+        className="mt-3 rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700"
+      >
+        + Видео қосу
+      </button>
+    </div>
+
+    {/* Оң жақ — preview */}
+    <div>
+      {videoType === "mp4" && selectedFile ? (
+        <video
+          src={URL.createObjectURL(selectedFile)}
+          controls
+          preload="metadata"
+          className="aspect-video w-full rounded-lg bg-black object-contain"
+        />
+      ) : videoType === "youtube" && videoUrl.trim() ? (
+        <iframe
+          src={videoUrl
+            .replace("watch?v=", "embed/")
+            .replace("youtu.be/", "youtube.com/embed/")
+            .replace("shorts/", "embed/")}
+          title="Жаңа видео preview"
+          className="aspect-video w-full rounded-lg"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
+      ) : (
+        <div className="flex aspect-video items-center justify-center rounded-lg bg-gray-100 text-sm text-gray-500">
+          Видео preview
+        </div>
+      )}
+    </div>
+  </div>
 </div>
-  + Видео қосу
-</button>
 
 {videoBlocks.length > 0 && (
   <div className="space-y-4">
