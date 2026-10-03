@@ -747,6 +747,30 @@ try {
             : "MP4 видео"}
         </p>
 
+        {block.videoUrl && (
+  <div className="mt-4 overflow-hidden rounded-xl border bg-black">
+    {block.videoType === "youtube" ? (
+      <iframe
+        src={block.videoUrl
+          .replace("watch?v=", "embed/")
+          .replace("youtu.be/", "youtube.com/embed/")
+          .replace("shorts/", "embed/")}
+        title={block.title}
+        className="aspect-video w-full"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+      />
+    ) : (
+      <video
+        src={block.videoUrl}
+        controls
+        preload="metadata"
+        className="aspect-video w-full bg-black"
+      />
+    )}
+  </div>
+)}
+
         <div className="mt-4 flex flex-wrap gap-2">
           <button
             type="button"
