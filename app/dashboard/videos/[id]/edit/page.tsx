@@ -61,6 +61,9 @@ const [selectedFile, setSelectedFile] =
   const [videoBlocks, setVideoBlocks] =
   useState<EditableVideoBlock[]>([]);
 
+  const [standaloneTextContent, setStandaloneTextContent] =
+  useState("");
+
 const [activeVideoBlockId, setActiveVideoBlockId] =
   useState<string | null>(null);
 
@@ -179,8 +182,14 @@ for (const block of lessonBlockData ?? []) {
   }
 
   if (!currentVideoBlock) {
-    continue;
+  if (block.block_type === "text") {
+    setStandaloneTextContent(
+      block.content?.html ?? ""
+    );
   }
+
+  continue;
+}
 
   if (block.block_type === "text") {
     currentVideoBlock.texts.push({
@@ -430,6 +439,20 @@ try {
 
   const lessonBlocks = [];
   let position = 0;
+
+  if (standaloneTextContent.trim()) {
+  lessonBlocks.push({
+    lesson_id: videoId,
+    block_type: "text",
+    title: null,
+    content: {
+      html: standaloneTextContent,
+    },
+    position,
+  });
+
+  position += 1;
+}
 
   for (const block of videoBlocks) {
     let finalVideoUrl = block.videoUrl;
@@ -763,6 +786,19 @@ try {
     </div>
   </div>
 </div>
+
+{standaloneTextContent && (
+  <div className="rounded-xl border border-green-200 bg-green-50 p-4">
+    <p className="mb-3 font-semibold text-green-800">
+      📝 Сабақ мәтіні
+    </p>
+
+    <RichTextEditor
+      value={standaloneTextContent}
+      onChange={setStandaloneTextContent}
+    />
+  </div>
+)}
 
 {videoBlocks.length > 0 && (
   <div className="space-y-4">

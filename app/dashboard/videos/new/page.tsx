@@ -64,6 +64,10 @@ const [showTextEditor, setShowTextEditor] =
 
   const [videoType, setVideoType] =
     useState<"youtube" | "mp4">("youtube");
+
+    const [lessonType, setLessonType] =
+  useState<"video" | "text">("video");
+
   const [moduleId, setModuleId] = useState("");
 
   const [modules, setModules] = useState<Module[]>([]);
@@ -257,10 +261,21 @@ async function uploadLessonFile(file: File) {
     return;
   }
 
-  if (videoBlocks.length === 0) {
-    alert("Кемінде бір видео қосыңыз.");
-    return;
-  }
+  if (
+  lessonType === "video" &&
+  videoBlocks.length === 0
+) {
+  alert("Кемінде бір видео қосыңыз.");
+  return;
+}
+
+if (
+  lessonType === "text" &&
+  !textContent.trim()
+) {
+  alert("Сабақ мәтінін жазыңыз.");
+  return;
+}
 
   try {
     setSaving(true);
@@ -303,21 +318,31 @@ async function uploadLessonFile(file: File) {
     }
 
     const firstVideo =
-      preparedVideoBlocks[0];
+  preparedVideoBlocks[0];
 
-    // 2. Негізгі сабақ жазбасын жасаймыз
-    const { data: createdVideo, error: videoError } =
-      await supabase
-        .from("videos")
-        .insert({
-          title: title.trim(),
-          video_url: firstVideo.finalUrl,
-          video_type: firstVideo.videoType,
-          course_id: courseId,
-          module_id: moduleId
-            ? Number(moduleId)
-            : null,
-        })
+// 2. Негізгі сабақ жазбасын жасаймыз
+const { data: createdVideo, error: videoError } =
+  await supabase
+    .from("videos")
+    .insert({
+      title: title.trim(),
+
+      video_url:
+        lessonType === "video"
+          ? firstVideo?.finalUrl ?? ""
+          : "",
+
+      video_type:
+        lessonType === "video"
+          ? firstVideo?.videoType ?? "youtube"
+          : "text",
+
+      course_id: courseId,
+
+      module_id: moduleId
+        ? Number(moduleId)
+        : null,
+    })
         .select("id")
         .single();
 
@@ -329,6 +354,20 @@ async function uploadLessonFile(file: File) {
     // lesson_blocks дайындаймыз
     const lessonBlocks = [];
     let position = 0;
+
+    if (lessonType === "text") {
+  lessonBlocks.push({
+    lesson_id: createdVideo.id,
+    block_type: "text",
+    title: null,
+    content: {
+      html: textContent,
+    },
+    position,
+  });
+
+  position += 1;
+}
 
     for (const block of preparedVideoBlocks) {
       // Видео
@@ -494,6 +533,30 @@ async function uploadLessonFile(file: File) {
             </div>
 
             <div>
+  <label className="block font-semibold">
+    Сабақ түрі
+  </label>
+
+  <select
+    value={lessonType}
+    onChange={(event) =>
+      setLessonType(
+        event.target.value as "video" | "text"
+      )
+    }
+    className="mt-2 w-full rounded-lg border p-3"
+  >
+    <option value="video">
+      🎬 Видео сабақ
+    </option>
+
+    <option value="text">
+      📝 Мәтіндік сабақ
+    </option>
+  </select>
+</div>
+
+            <div>
               <label className="block font-semibold">
                 Модуль
               </label>
@@ -520,7 +583,9 @@ async function uploadLessonFile(file: File) {
               </select>
             </div>
 
-            <div>
+            {lessonType === "video" && (
+  <>
+              <div>
               <label className="block font-semibold">
                 Видео түрі
               </label>
@@ -543,6 +608,21 @@ async function uploadLessonFile(file: File) {
                 </option>
               </select>
             </div>
+              </>
+)}
+
+{lessonType === "text" && (
+  <div className="rounded-xl border border-green-200 bg-green-50 p-4">
+    <p className="mb-3 font-semibold text-green-800">
+      📝 Сабақ мәтіні
+    </p>
+
+    <RichTextEditor
+      value={textContent}
+      onChange={setTextContent}
+    />
+  </div>
+)}
 
             {videoType === "youtube" ? (
   <div>
